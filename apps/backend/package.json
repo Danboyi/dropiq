@@ -1,0 +1,55 @@
+{
+  "name": "backend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "nx serve backend",
+    "build": "nx build backend",
+    "start": "node dist/apps/backend/main.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "nx lint backend",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "prisma db seed"
+  },
+  "dependencies": {
+    "@nx/node": "^19.8.4",
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "dotenv": "^16.4.5",
+    "compression": "^1.7.4",
+    "express-rate-limit": "^7.2.0",
+    "zod": "^3.23.8",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "crypto": "^1.0.1",
+    "ethers": "^6.13.2",
+    "@prisma/client": "^5.16.1",
+    "@types/node": "18.16.9",
+    "typescript": "~5.5.3"
+  },
+  "devDependencies": {
+    "@nx/eslint": "^19.8.4",
+    "@nx/jest": "^19.8.4",
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "@types/morgan": "^1.9.9",
+    "@types/compression": "^1.7.5",
+    "@types/supertest": "^6.0.2",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/bcryptjs": "^2.4.6",
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.2",
+    "prisma": "^5.16.1"
+  },
+  "prisma": {
+    "seed": "ts-node apps/backend/src/prisma/seed.ts"
+  }
+}
