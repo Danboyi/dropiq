@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -106,6 +106,7 @@ model Airdrop {
   // Relations
   userAirdropStatuses UserAirdropStatus[]
   vettingReports     VettingReport[]
+  discoveredAirdrops DiscoveredAirdrop[]
   
   @@map("airdrops")
 }
@@ -150,8 +151,8 @@ model VettingReport {
   
   // AI-generated insights
   summary String?
-  risks   String[] // Array of identified risks
-  rewards String[] // Array of potential rewards
+  risks   String   // JSON string array of identified risks
+  rewards String   // JSON string array of potential rewards
   
   // Metadata
   generatedAt DateTime @default(now())
@@ -162,6 +163,108 @@ model VettingReport {
   airdrop  Airdrop @relation(fields: [airdropId], references: [id], onDelete: Cascade)
   
   @@map("vetting_reports")
+}
+
+// Discovery sources for tracking where airdrops were found
+model DiscoverySource {
+  id          String        @id @default(cuid())
+  name        String        // e.g., "Twitter/X", "Project Website", "Discord"
+  type        SourceType
+  url         String?       // Source URL if applicable
+  isActive    Boolean       @default(true)
+  
+  // Configuration
+  config      Json?         // Scraper configuration
+  lastScraped DateTime?
+  
+  // Relations
+  discoveredAirdrops DiscoveredAirdrop[]
+  
+  @@map("discovery_sources")
+}
+
+// Discovered airdrops before vetting
+model DiscoveredAirdrop {
+  id          String              @id @default(cuid())
+  name        String
+  description String?
+  url         String?             // Source URL where it was found
+  rawContent  Json?               // Raw scraped data
+  
+  // Status tracking
+  status      DiscoveryStatus     @default(DISCOVERED)
+  priority    DiscoveryPriority   @default(MEDIUM)
+  
+  // Duplicate detection
+  hash        String?             // Content hash for duplicate detection
+  duplicateOf String?             // Reference to original discovered airdrop
+  
+  // Metadata
+  discoveredAt DateTime @default(now())
+  
+  // Relations
+  sourceId            String
+  source              DiscoverySource @relation(fields: [sourceId], references: [id])
+  airdropId           String?
+  airdrop             Airdrop?        @relation(fields: [airdropId], references: [id])
+  vettingJobs         VettingJob[]
+  
+  @@map("discovered_airdrops")
+}
+
+// Background jobs for vetting process
+model VettingJob {
+  id          String        @id @default(cuid())
+  type        JobType
+  status      JobStatus     @default(PENDING)
+  priority    Int           @default(5)
+  
+  // Job configuration
+  config      Json          // Job parameters
+  result      Json?         // Job results
+  
+  // Progress tracking
+  progress    Float         @default(0)
+  currentStep String?
+  totalSteps  Int?
+  
+  // Error handling
+  error       String?
+  retryCount  Int           @default(0)
+  maxRetries  Int           @default(3)
+  
+  // Timestamps
+  scheduledAt DateTime      @default(now())
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  // Relations
+  discoveredAirdropId String
+  discoveredAirdrop   DiscoveredAirdrop @relation(fields: [discoveredAirdropId], references: [id], onDelete: Cascade)
+  
+  @@map("vetting_jobs")
+}
+
+// External API data cache
+model ExternalData {
+  id        String      @id @default(cuid())
+  source    String      // e.g., "goplus", "moralis", "coingecko"
+  type      DataType    // e.g., "contract_analysis", "token_price", "social_stats"
+  identifier String     // Contract address, token symbol, etc.
+  data      Json        // Cached API response
+  
+  // Cache management
+  expiresAt DateTime
+  isValid   Boolean     @default(true)
+  
+  // Metadata
+  fetchedAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  
+  @@unique([source, type, identifier])
+  @@map("external_data")
 }
 
 // Session management for JWT tokens
@@ -232,4 +335,59 @@ enum VettingResult {
   CAUTION
   RISKY
   SCAM
+}
+
+enum SourceType {
+  TWITTER
+  DISCORD
+  TELEGRAM
+  WEBSITE
+  REDDIT
+  MEDIUM
+  YOUTUBE
+  CUSTOM
+}
+
+enum DiscoveryStatus {
+  DISCOVERED
+  PROCESSING
+  VETTING
+  APPROVED
+  REJECTED
+  DUPLICATE
+}
+
+enum DiscoveryPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum JobType {
+  SCRAPE_TWITTER
+  SCRAPE_WEBSITE
+  VETTING_SANITY
+  VETTING_FUNDAMENTALS
+  VETTING_AI_ANALYSIS
+  EXTERNAL_API_CALL
+  NOTIFICATION
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+  RETRYING
+}
+
+enum DataType {
+  CONTRACT_ANALYSIS
+  TOKEN_PRICE
+  SOCIAL_STATS
+  TEAM_INFO
+  TECHNICAL_AUDIT
+  MARKET_DATA
 }

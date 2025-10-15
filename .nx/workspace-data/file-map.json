@@ -1,0 +1,589 @@
+{
+  "version": "6.0",
+  "nxVersion": "21.6.4",
+  "pathMappings": {
+    "@/*": [
+      "./src/*"
+    ]
+  },
+  "nxJsonPlugins": [
+    {
+      "name": "@nx/webpack/plugin",
+      "options": {
+        "buildTargetName": "build",
+        "serveTargetName": "serve",
+        "previewTargetName": "preview"
+      }
+    },
+    {
+      "name": "@nx/eslint/plugin",
+      "options": {
+        "targetName": "lint"
+      }
+    },
+    {
+      "name": "@nx/jest/plugin",
+      "options": {
+        "targetName": "test"
+      }
+    }
+  ],
+  "fileMap": {
+    "projectFileMap": {
+      "frontend": [
+        {
+          "file": "apps/frontend/.next/cache/config.json",
+          "hash": "701109989223141804"
+        },
+        {
+          "file": "apps/frontend/.next/cache/eslint/.cache_jb25mh",
+          "hash": "6202386251401236902"
+        },
+        {
+          "file": "apps/frontend/package.json",
+          "hash": "5658186396483816634",
+          "deps": [
+            "npm:@types/react",
+            "npm:@types/react-dom",
+            "npm:eslint",
+            "npm:eslint-config-next",
+            "npm:next",
+            "npm:react",
+            "npm:react-dom",
+            "npm:tailwindcss",
+            "npm:postcss",
+            "npm:@types/node",
+            "npm:typescript",
+            "npm:@tanstack/react-query",
+            "npm:zustand",
+            "npm:@radix-ui/react-dialog",
+            "npm:@radix-ui/react-dropdown-menu",
+            "npm:@radix-ui/react-avatar",
+            "npm:@radix-ui/react-label",
+            "npm:@radix-ui/react-toast",
+            "npm:@radix-ui/react-separator",
+            "npm:class-variance-authority",
+            "npm:clsx",
+            "npm:tailwind-merge",
+            "npm:lucide-react",
+            "npm:axios",
+            "npm:js-cookie"
+          ]
+        },
+        {
+          "file": "apps/frontend/src/app/admin/page.tsx",
+          "hash": "5474922531516691246"
+        },
+        {
+          "file": "apps/frontend/src/app/layout.tsx",
+          "hash": "9321982552019020469",
+          "deps": [
+            "npm:next"
+          ]
+        },
+        {
+          "file": "apps/frontend/src/app/page.tsx",
+          "hash": "10793202793214899620"
+        },
+        {
+          "file": "apps/frontend/src/components/AdminDashboard.tsx",
+          "hash": "5731684780925858004",
+          "deps": [
+            "npm:react",
+            "npm:lucide-react"
+          ]
+        },
+        {
+          "file": "apps/frontend/src/components/AuthModal.tsx",
+          "hash": "12976602363306450772",
+          "deps": [
+            "npm:react",
+            "npm:lucide-react"
+          ]
+        },
+        {
+          "file": "apps/frontend/src/components/Dashboard.tsx",
+          "hash": "13126855827719072620",
+          "deps": [
+            "npm:lucide-react",
+            "npm:next"
+          ]
+        },
+        {
+          "file": "apps/frontend/src/components/Providers.tsx",
+          "hash": "6945561386579374139",
+          "deps": [
+            "npm:@tanstack/react-query",
+            "npm:react"
+          ]
+        },
+        {
+          "file": "apps/frontend/src/components/UserMenu.tsx",
+          "hash": "10223409035542347080",
+          "deps": [
+            "npm:lucide-react"
+          ]
+        },
+        {
+          "file": "apps/frontend/src/components/WalletConnectModal.tsx",
+          "hash": "2117814596702723310",
+          "deps": [
+            "npm:react",
+            "npm:lucide-react"
+          ]
+        },
+        {
+          "file": "apps/frontend/src/lib/api.ts",
+          "hash": "14061598044680003386",
+          "deps": [
+            "npm:axios"
+          ]
+        },
+        {
+          "file": "apps/frontend/src/lib/wagmi.ts",
+          "hash": "10711081473771014786"
+        },
+        {
+          "file": "apps/frontend/tsconfig.json",
+          "hash": "15337167957341348420"
+        }
+      ],
+      "backend": [
+        {
+          "file": "apps/backend/package.json",
+          "hash": "14574285794887610920",
+          "deps": [
+            "npm:@types/cors",
+            "npm:prisma",
+            "npm:cors",
+            "npm:dotenv",
+            "npm:zod",
+            "npm:@prisma/client",
+            "npm:@types/node",
+            "npm:typescript",
+            "npm:axios"
+          ]
+        },
+        {
+          "file": "apps/backend/src/controllers/admin.controller.ts",
+          "hash": "13550377590800217808",
+          "deps": [
+            "npm:@prisma/client"
+          ]
+        },
+        {
+          "file": "apps/backend/src/controllers/airdrop.controller.ts",
+          "hash": "14125301566136267426",
+          "deps": [
+            "npm:@prisma/client"
+          ]
+        },
+        {
+          "file": "apps/backend/src/controllers/auth.controller.ts",
+          "hash": "53274823870686361",
+          "deps": [
+            "npm:zod"
+          ]
+        },
+        {
+          "file": "apps/backend/src/main.ts",
+          "hash": "8403183642199391069",
+          "deps": [
+            "npm:cors",
+            "npm:dotenv"
+          ]
+        },
+        {
+          "file": "apps/backend/src/middleware/auth.middleware.ts",
+          "hash": "5448348067973223684"
+        },
+        {
+          "file": "apps/backend/src/routes/admin.ts",
+          "hash": "17744378877087666998"
+        },
+        {
+          "file": "apps/backend/src/routes/airdrop.ts",
+          "hash": "2011579473061176222"
+        },
+        {
+          "file": "apps/backend/src/routes/api.ts",
+          "hash": "257032569923405789"
+        },
+        {
+          "file": "apps/backend/src/routes/auth.ts",
+          "hash": "16506356679909977013"
+        },
+        {
+          "file": "apps/backend/src/routes/health.ts",
+          "hash": "13694464193779160219"
+        },
+        {
+          "file": "apps/backend/src/services/airdrop-engine.service.ts",
+          "hash": "14075352178056744624",
+          "deps": [
+            "npm:@prisma/client"
+          ]
+        },
+        {
+          "file": "apps/backend/src/services/auth.service.ts",
+          "hash": "11274623824161575712"
+        },
+        {
+          "file": "apps/backend/src/services/discovery.service.ts",
+          "hash": "556100741758258813",
+          "deps": [
+            "npm:@prisma/client",
+            "npm:axios"
+          ]
+        },
+        {
+          "file": "apps/backend/src/services/external-api.service.ts",
+          "hash": "5100180245763649744",
+          "deps": [
+            "npm:axios",
+            "npm:@prisma/client"
+          ]
+        },
+        {
+          "file": "apps/backend/src/services/job-queue.service.ts",
+          "hash": "7452369803224601312",
+          "deps": [
+            "npm:@prisma/client"
+          ]
+        },
+        {
+          "file": "apps/backend/src/services/vetting.service.ts",
+          "hash": "15853319857450689372",
+          "deps": [
+            "npm:@prisma/client",
+            "npm:z-ai-web-dev-sdk",
+            "npm:axios"
+          ]
+        }
+      ]
+    },
+    "nonProjectFiles": [
+      {
+        "file": ".dockerignore",
+        "hash": "16504999512360667368"
+      },
+      {
+        "file": ".gitignore",
+        "hash": "4986979040900053751"
+      },
+      {
+        "file": "AUTHENTICATION.md",
+        "hash": "2526145880699102081"
+      },
+      {
+        "file": "IMPLEMENTATION_SUMMARY.md",
+        "hash": "16682317067958180307"
+      },
+      {
+        "file": "README.md",
+        "hash": "1537134051728165316"
+      },
+      {
+        "file": "components.json",
+        "hash": "1259295275652969683"
+      },
+      {
+        "file": "db/custom.db",
+        "hash": "13396068986358721974"
+      },
+      {
+        "file": "docker-compose.yml",
+        "hash": "2461350135880305957"
+      },
+      {
+        "file": "eslint.config.mjs",
+        "hash": "13939212632096881965"
+      },
+      {
+        "file": "examples/websocket/page.tsx",
+        "hash": "17808399903274808415"
+      },
+      {
+        "file": "next.config.ts",
+        "hash": "18155553592838200736"
+      },
+      {
+        "file": "nx.json",
+        "hash": "12940908790574382869"
+      },
+      {
+        "file": "package-lock.json",
+        "hash": "4346256891246016830"
+      },
+      {
+        "file": "package.json",
+        "hash": "4394680468615142235"
+      },
+      {
+        "file": "postcss.config.mjs",
+        "hash": "535692822154927684"
+      },
+      {
+        "file": "prisma/schema.prisma",
+        "hash": "12869451308046679730"
+      },
+      {
+        "file": "prisma/seed.sql",
+        "hash": "8085181201949593387"
+      },
+      {
+        "file": "public/logo.svg",
+        "hash": "6130712437105642070"
+      },
+      {
+        "file": "public/robots.txt",
+        "hash": "12805369797289910699"
+      },
+      {
+        "file": "server.ts",
+        "hash": "11577112939568500979"
+      },
+      {
+        "file": "src/app/api/health/route.ts",
+        "hash": "13821755349042328581"
+      },
+      {
+        "file": "src/app/favicon.ico",
+        "hash": "9821524214881088283"
+      },
+      {
+        "file": "src/app/globals.css",
+        "hash": "16613346069346601751"
+      },
+      {
+        "file": "src/app/layout.tsx",
+        "hash": "4334503850552989520"
+      },
+      {
+        "file": "src/app/page.tsx",
+        "hash": "12822646037042077754"
+      },
+      {
+        "file": "src/components/ui/accordion.tsx",
+        "hash": "14845587631308835637"
+      },
+      {
+        "file": "src/components/ui/alert-dialog.tsx",
+        "hash": "8072787343859173829"
+      },
+      {
+        "file": "src/components/ui/alert.tsx",
+        "hash": "7480384198647105618"
+      },
+      {
+        "file": "src/components/ui/aspect-ratio.tsx",
+        "hash": "15701597510096820978"
+      },
+      {
+        "file": "src/components/ui/avatar.tsx",
+        "hash": "14751210977726479928"
+      },
+      {
+        "file": "src/components/ui/badge.tsx",
+        "hash": "10963678808027697072"
+      },
+      {
+        "file": "src/components/ui/breadcrumb.tsx",
+        "hash": "4542918030053654785"
+      },
+      {
+        "file": "src/components/ui/button.tsx",
+        "hash": "10225437513930193679"
+      },
+      {
+        "file": "src/components/ui/calendar.tsx",
+        "hash": "6194910191893103211"
+      },
+      {
+        "file": "src/components/ui/card.tsx",
+        "hash": "12626163197687957168"
+      },
+      {
+        "file": "src/components/ui/carousel.tsx",
+        "hash": "6463183749126440978"
+      },
+      {
+        "file": "src/components/ui/chart.tsx",
+        "hash": "14434284085299163233"
+      },
+      {
+        "file": "src/components/ui/checkbox.tsx",
+        "hash": "17824499335902137134"
+      },
+      {
+        "file": "src/components/ui/collapsible.tsx",
+        "hash": "11042801197673806344"
+      },
+      {
+        "file": "src/components/ui/command.tsx",
+        "hash": "13614135110219176049"
+      },
+      {
+        "file": "src/components/ui/context-menu.tsx",
+        "hash": "16051270640191030489"
+      },
+      {
+        "file": "src/components/ui/dialog.tsx",
+        "hash": "3787619525081248836"
+      },
+      {
+        "file": "src/components/ui/drawer.tsx",
+        "hash": "6340250294204870363"
+      },
+      {
+        "file": "src/components/ui/dropdown-menu.tsx",
+        "hash": "3901082716450401437"
+      },
+      {
+        "file": "src/components/ui/form.tsx",
+        "hash": "3200697611223940984"
+      },
+      {
+        "file": "src/components/ui/hover-card.tsx",
+        "hash": "4222917547134356225"
+      },
+      {
+        "file": "src/components/ui/input-otp.tsx",
+        "hash": "16041620776518406954"
+      },
+      {
+        "file": "src/components/ui/input.tsx",
+        "hash": "5100320126020590845"
+      },
+      {
+        "file": "src/components/ui/label.tsx",
+        "hash": "5904204581463370082"
+      },
+      {
+        "file": "src/components/ui/menubar.tsx",
+        "hash": "11635968809644900115"
+      },
+      {
+        "file": "src/components/ui/navigation-menu.tsx",
+        "hash": "1463801237709690436"
+      },
+      {
+        "file": "src/components/ui/pagination.tsx",
+        "hash": "1221162818688540102"
+      },
+      {
+        "file": "src/components/ui/popover.tsx",
+        "hash": "2123900949476297986"
+      },
+      {
+        "file": "src/components/ui/progress.tsx",
+        "hash": "11845427145659035377"
+      },
+      {
+        "file": "src/components/ui/radio-group.tsx",
+        "hash": "9009039500102138258"
+      },
+      {
+        "file": "src/components/ui/resizable.tsx",
+        "hash": "16715976187353444410"
+      },
+      {
+        "file": "src/components/ui/scroll-area.tsx",
+        "hash": "4331523341645098951"
+      },
+      {
+        "file": "src/components/ui/select.tsx",
+        "hash": "9281864355344609472"
+      },
+      {
+        "file": "src/components/ui/separator.tsx",
+        "hash": "17968105264491771283"
+      },
+      {
+        "file": "src/components/ui/sheet.tsx",
+        "hash": "16878751729248024323"
+      },
+      {
+        "file": "src/components/ui/sidebar.tsx",
+        "hash": "8409537637849470092"
+      },
+      {
+        "file": "src/components/ui/skeleton.tsx",
+        "hash": "16279548040846261523"
+      },
+      {
+        "file": "src/components/ui/slider.tsx",
+        "hash": "14523236345534185617"
+      },
+      {
+        "file": "src/components/ui/sonner.tsx",
+        "hash": "17295952987053759355"
+      },
+      {
+        "file": "src/components/ui/switch.tsx",
+        "hash": "1593497887276823321"
+      },
+      {
+        "file": "src/components/ui/table.tsx",
+        "hash": "9236219364163009886"
+      },
+      {
+        "file": "src/components/ui/tabs.tsx",
+        "hash": "10177421167616315890"
+      },
+      {
+        "file": "src/components/ui/textarea.tsx",
+        "hash": "3895507706129911610"
+      },
+      {
+        "file": "src/components/ui/toast.tsx",
+        "hash": "4743152355928830369"
+      },
+      {
+        "file": "src/components/ui/toaster.tsx",
+        "hash": "2858365454491956705"
+      },
+      {
+        "file": "src/components/ui/toggle-group.tsx",
+        "hash": "15943558637507000692"
+      },
+      {
+        "file": "src/components/ui/toggle.tsx",
+        "hash": "8693739005475279689"
+      },
+      {
+        "file": "src/components/ui/tooltip.tsx",
+        "hash": "11101211651442867546"
+      },
+      {
+        "file": "src/hooks/use-mobile.ts",
+        "hash": "14900138732519213047"
+      },
+      {
+        "file": "src/hooks/use-toast.ts",
+        "hash": "6653077472284635041"
+      },
+      {
+        "file": "src/lib/db.ts",
+        "hash": "2682795342296256631"
+      },
+      {
+        "file": "src/lib/socket.ts",
+        "hash": "13137873792263275240"
+      },
+      {
+        "file": "src/lib/utils.ts",
+        "hash": "6483145186850064023"
+      },
+      {
+        "file": "tailwind.config.ts",
+        "hash": "10955211131367629267"
+      },
+      {
+        "file": "tsconfig.json",
+        "hash": "3812834507492996856"
+      }
+    ]
+  },
+  "externalNodesHash": "14393253876595973839"
+}

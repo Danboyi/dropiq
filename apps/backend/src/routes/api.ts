@@ -1,4 +1,7 @@
 import { Router } from 'express'
+import authRoutes from './auth'
+import airdropRoutes from './airdrop'
+import adminRoutes from './admin'
 
 const router = Router()
 
@@ -9,33 +12,17 @@ router.get('/', (req, res) => {
       message: 'DropIQ API v1.0.0',
       endpoints: {
         auth: '/api/auth',
-        health: '/health',
         airdrops: '/api/airdrops',
-        users: '/api/users',
+        admin: '/api/admin',
+        health: '/health',
       },
     }
   })
 })
 
-// Placeholder routes for future implementation
-router.get('/airdrops', (req, res) => {
-  res.json({
-    success: true,
-    data: {
-      message: 'Airdrops endpoint - to be implemented',
-      data: [],
-    }
-  })
-})
-
-router.get('/users', (req, res) => {
-  res.json({
-    success: true,
-    data: {
-      message: 'Users endpoint - to be implemented',
-      data: {},
-    }
-  })
-})
+// Route modules
+router.use('/auth', authRoutes)
+router.use('/airdrops', airdropRoutes)
+router.use('/admin', adminRoutes)
 
 export { router as apiRouter }

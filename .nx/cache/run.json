@@ -1,0 +1,32 @@
+{
+  "run": {
+    "command": "nx run-many --target=lint --all",
+    "startTime": "2025-10-15T01:40:18.362Z",
+    "endTime": "2025-10-15T01:40:25.841Z",
+    "inner": false
+  },
+  "tasks": [
+    {
+      "taskId": "frontend:lint",
+      "target": "lint",
+      "projectName": "frontend",
+      "hash": "17122926098494281429",
+      "startTime": "2025-10-15T01:40:18.377Z",
+      "endTime": "2025-10-15T01:40:23.584Z",
+      "params": "",
+      "cacheStatus": "cache-miss",
+      "status": 1
+    },
+    {
+      "taskId": "backend:lint",
+      "target": "lint",
+      "projectName": "backend",
+      "hash": "15879303014125329670",
+      "startTime": "2025-10-15T01:40:18.377Z",
+      "endTime": "2025-10-15T01:40:25.840Z",
+      "params": "",
+      "cacheStatus": "cache-miss",
+      "status": 1
+    }
+  ]
+}

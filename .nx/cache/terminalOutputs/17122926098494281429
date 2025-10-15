@@ -1,0 +1,27 @@
+
+> frontend@0.1.0 lint
+> next lint
+
+
+ [37m[1m [22m[39m We detected TypeScript in your project and created a [36mtsconfig.json[39m file for you.
+[35m[1mAttention[22m[39m: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+[36mhttps://nextjs.org/telemetry[39m
+
+
+[36m./src/app/layout.tsx[39m
+[33m40[39m:[33m20[39m  [31m[1mError[22m[39m: 'Button' is not defined.  [90m[1mreact/jsx-no-undef[22m[39m
+[33m43[39m:[33m20[39m  [31m[1mError[22m[39m: 'Button' is not defined.  [90m[1mreact/jsx-no-undef[22m[39m
+
+[36m./src/components/AdminDashboard.tsx[39m
+[33m131[39m:[33m3[39m  [31m[1mError[22m[39m: React Hook "useEffect" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  [90m[1mreact-hooks/rules-of-hooks[22m[39m
+
+[36minfo[39m  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+npm error Lifecycle script `lint` failed with error:
+npm error code 1
+npm error path /home/z/my-project/apps/frontend
+npm error workspace frontend@0.1.0
+npm error location /home/z/my-project/apps/frontend
+npm error command failed
+npm error command sh -c next lint

@@ -8,6 +8,7 @@ import dotenv from 'dotenv'
 import { authRouter } from './routes/auth'
 import { apiRouter } from './routes/api'
 import { healthRouter } from './routes/health'
+import { AirdropEngineService } from './services/airdrop-engine.service'
 
 dotenv.config()
 
@@ -62,7 +63,36 @@ app.use('*', (req: express.Request, res: express.Response) => {
   })
 })
 
-app.listen(port, () => {
-  console.log(`🚀 Backend application running on port ${port}`)
-  console.log(`📖 API documentation available at http://localhost:${port}/api/docs`)
+// Initialize airdrop engine and start server
+async function startServer() {
+  try {
+    // Initialize the airdrop engine
+    console.log('Initializing airdrop engine...')
+    await AirdropEngineService.initialize()
+    
+    app.listen(port, () => {
+      console.log(`🚀 Backend application running on port ${port}`)
+      console.log(`📖 API documentation available at http://localhost:${port}/api/docs`)
+      console.log(`🔍 Airdrop discovery engine is running`)
+    })
+
+  } catch (error) {
+    console.error('Failed to start server:', error)
+    process.exit(1)
+  }
+}
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM received, shutting down gracefully...')
+  await AirdropEngineService.shutdown()
+  process.exit(0)
 })
+
+process.on('SIGINT', async () => {
+  console.log('SIGINT received, shutting down gracefully...')
+  await AirdropEngineService.shutdown()
+  process.exit(0)
+})
+
+startServer()

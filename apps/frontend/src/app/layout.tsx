@@ -1,6 +1,7 @@
 import './globals.css'
 import { Inter } from 'next/font/google'
 import { Providers } from '@/components/Providers'
+import { Button } from '@/components/ui/button'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -37,10 +38,10 @@ export default function RootLayout({
                   </nav>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" onClick={() => setShowAuthModal(true)}>
+                  <Button variant="outline" onClick={() => {}}>
                     Sign In
                   </Button>
-                  <Button onClick={() => setShowWalletModal(true)}>
+                  <Button onClick={() => {}}>
                     Connect Wallet
                   </Button>
                 </div>

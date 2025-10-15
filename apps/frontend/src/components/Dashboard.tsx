@@ -13,8 +13,10 @@ import {
   Lock, 
   Crown,
   ArrowRight,
-  CheckCircle
+  CheckCircle,
+  Settings
 } from 'lucide-react'
+import Link from 'next/link'
 
 interface DashboardStats {
   totalAirdrops: number
@@ -252,11 +254,21 @@ export function Dashboard() {
                 Welcome back, {user?.firstName || user?.email || 'User'}!
               </p>
             </div>
-            {(isUser || isPremium) && (
-              <Badge variant="secondary" className="text-sm">
-                {isPremium ? 'Premium Member' : 'Full Access'}
-              </Badge>
-            )}
+            <div className="flex items-center gap-3">
+              {(isUser || isPremium) && (
+                <Badge variant="secondary" className="text-sm">
+                  {isPremium ? 'Premium Member' : 'Full Access'}
+                </Badge>
+              )}
+              {isAdmin && (
+                <Link href="/admin">
+                  <Button variant="outline" size="sm">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Admin Panel
+                  </Button>
+                </Link>
+              )}
+            </div>
           </div>
         </div>
 

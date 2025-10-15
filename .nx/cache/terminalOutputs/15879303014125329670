@@ -1,0 +1,99 @@
+
+> backend@0.1.0 lint
+> nx lint backend
+
+
+[2m> [22m[2mnx run[22m backend:lint
+
+> backend@0.1.0 lint
+> nx lint backend
+[2m> [22m[2mnx run[22m backend:lint
+> backend@0.1.0 lint
+> nx lint backend
+[2m> [22m[2mnx run[22m backend:lint
+> backend@0.1.0 lint
+> nx lint backend
+[2m> [22m[2mnx run[22m backend:lint
+> backend@0.1.0 lint
+> nx lint backend
+[2m> [22m[2mnx run[22m backend:lint
+> backend@0.1.0 lint
+> nx lint backend
+thread '<unnamed>' panicked at /rustc/05f9846f893b09a1be1fc8560e33fc3c815cfecb/library/std/src/thread/mod.rs:729:29:
+failed to spawn thread: Os { code: 11, kind: WouldBlock, message: "Resource temporarily unavailable" }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+fatal runtime error: failed to initiate panic, error 
+5
+[0m[7m[1m[31m NX [39m[22m[27m[0m  [31mFailed to process project graph.[39m
+An error occurred while processing files for the @nx/eslint/plugin plugin (Defined at nx.json#plugins[1])
+.
+  - Plugin worker @nx/eslint/plugin exited unexpectedly with code null
+npm error Lifecycle script `lint` failed with error:
+npm error code 1
+npm error path /home/z/my-project/apps/backend
+npm error workspace backend@0.1.0
+npm error location /home/z/my-project/apps/backend
+npm error command failed
+npm error command sh -c nx lint backend
+[0m[7m[1m[31m NX [39m[22m[27m[0m  [31mRunning target [1mlint[22m for project backend failed[39m
+[2mFailed tasks:[22m
+[2m-[22m backend:lint
+[2mHint: run the command with[22m --verbose [2mfor more details.[22m
+npm error Lifecycle script `lint` failed with error:
+npm error code 1
+npm error path /home/z/my-project/apps/backend
+npm error workspace backend@0.1.0
+npm error location /home/z/my-project/apps/backend
+npm error command failed
+npm error command sh -c nx lint backend
+[0m[7m[1m[31m NX [39m[22m[27m[0m  [31mRunning target [1mlint[22m for project backend failed[39m
+[2mFailed tasks:[22m
+[2m-[22m backend:lint
+[2mHint: run the command with[22m --verbose [2mfor more details.[22m
+npm error Lifecycle script `lint` failed with error:
+npm error code 1
+npm error path /home/z/my-project/apps/backend
+npm error workspace backend@0.1.0
+npm error location /home/z/my-project/apps/backend
+npm error command failed
+npm error command sh -c nx lint backend
+[0m[7m[1m[31m NX [39m[22m[27m[0m  [31mRunning target [1mlint[22m for project backend failed[39m
+[2mFailed tasks:[22m
+[2m-[22m backend:lint
+[2mHint: run the command with[22m --verbose [2mfor more details.[22m
+npm error Lifecycle script `lint` failed with error:
+npm error code 1
+npm error path /home/z/my-project/apps/backend
+npm error workspace backend@0.1.0
+npm error location /home/z/my-project/apps/backend
+npm error command failed
+npm error command sh -c nx lint backend
+[0m[7m[1m[31m NX [39m[22m[27m[0m  [31mRunning target [1mlint[22m for project backend failed[39m
+[2mFailed tasks:[22m
+[2m-[22m backend:lint
+[2mHint: run the command with[22m --verbose [2mfor more details.[22m
+npm error Lifecycle script `lint` failed with error:
+npm error code 1
+npm error path /home/z/my-project/apps/backend
+npm error workspace backend@0.1.0
+npm error location /home/z/my-project/apps/backend
+npm error command failed
+npm error command sh -c nx lint backend
+
+
+
+[0m[7m[1m[31m NX [39m[22m[27m[0m  [31mRunning target [1mlint[22m for project backend failed[39m
+
+[2mFailed tasks:[22m
+
+[2m-[22m backend:lint
+
+[2mHint: run the command with[22m --verbose [2mfor more details.[22m
+
+npm error Lifecycle script `lint` failed with error:
+npm error code 1
+npm error path /home/z/my-project/apps/backend
+npm error workspace backend@0.1.0
+npm error location /home/z/my-project/apps/backend
+npm error command failed
+npm error command sh -c nx lint backend
