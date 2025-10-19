@@ -1,0 +1,1055 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ========================================
+// USER MANAGEMENT
+// ========================================
+
+model User {
+  id                String   @id @default(cuid())
+  email             String?  @unique
+  username          String?  @unique
+  displayName       String?
+  avatar            String?
+  bio               String?
+  walletAddress     String?  @unique
+  role              String   @default("guest") // guest, user, premium
+  passwordHash      String?
+  emailVerified     Boolean  @default(false)
+  emailVerifiedAt   DateTime?
+  lastLoginAt       DateTime?
+  isActive          Boolean  @default(true)
+  isPremium         Boolean  @default(false)
+  referralCode      String?  @unique
+  referredBy        String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  authSessions      AuthSession[]
+  
+  @@map("users")
+}
+
+model AuthSession {
+  id            String   @id @default(cuid())
+  userId        String?  // nullable for guest sessions
+  walletAddress String?  @unique // for wallet-based sessions
+  token         String   @unique
+  refreshToken  String?  @unique
+  role          String   @default("guest") // guest, user, premium
+  expiresAt     DateTime
+  lastActiveAt  DateTime @default(now())
+  ipAddress     String?
+  userAgent     String?
+  isActive      Boolean  @default(true)
+  metadata      Json?    // Additional session data
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user          User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("auth_sessions")
+}
+
+// ========================================
+// AIRDROP DATA
+// ========================================
+
+model Airdrop {
+  id                    String   @id @default(cuid())
+  title                 String
+  slug                  String   @unique
+  description           String
+  shortDescription      String?
+  projectId             String
+  status                String   @default("upcoming") // upcoming, active, ended, cancelled
+  type                  String   @default("standard") // standard, nft, token, liquidity
+  startDate             DateTime
+  endDate               DateTime?
+  registrationDeadline  DateTime?
+  claimDeadline         DateTime?
+  totalAmount           Decimal
+  tokenSymbol           String?
+  participantsCount     Int      @default(0)
+  maxParticipants       Int?
+  minRewardAmount       Decimal?
+  maxRewardAmount       Decimal?
+  averageReward         Decimal?
+  rewardDistribution    String   @default("proportional") // equal, proportional, tiered
+  verificationRequired  Boolean  @default(false)
+  kycRequired           Boolean  @default(false)
+  gasRequired           Boolean  @default(false)
+  estimatedGas          Decimal?
+  trustScore            Decimal  @default(0) // 0-100
+  featured              Boolean  @default(false)
+  trending              Boolean  @default(false)
+  tags                  String?  @default("[]") // JSON array for SQLite
+  socialLinks           Json?    // Twitter, Discord, Telegram, etc.
+  requirements          Json?    // Detailed requirements
+  eligibilityCriteria   Json?    // Eligibility rules
+  rewardStructure       Json?    // How rewards are calculated
+  metadata              Json?    // Additional metadata
+  createdBy             String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // Relations
+  project               Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  @@map("airdrops")
+}
+
+model Project {
+  id                  String   @id @default(cuid())
+  name                String
+  slug                String   @unique
+  description         String
+  website             String
+  logo                String?
+  banner              String?
+  category            String   // defi, gaming, nft, infrastructure, etc.
+  blockchain          String
+  contractAddress     String?
+  socialLinks         Json?    // Social media links
+  team                Json?    // Team information
+  investors           Json?    // Investor information
+  funding             Json?    // Funding rounds
+  tokenomics          Json?    // Token distribution
+  roadmap             Json?    // Project roadmap
+  whitepaper          String?
+  auditReport         String?
+  trustScore          Decimal  @default(0) // 0-100
+  verificationStatus  String   @default("unverified") // unverified, verified, flagged
+  isScam              Boolean  @default(false)
+  isActive            Boolean  @default(true)
+  featured            Boolean  @default(false)
+  tags                String?  @default("[]") // JSON array for SQLite
+  metadata            Json?    // Additional metadata
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relations
+  airdrops            Airdrop[]
+  
+  @@map("projects")
+}
+
+// ========================================
+// SHILLING MARKETPLACE
+// ========================================
+
+model ShillingCampaign {
+  id                  String   @id @default(cuid())
+  title               String
+  description         String
+  campaignType        String   // promotion, review, tutorial, social_media
+  projectId           String?
+  airdropId           String?
+  creatorId           String
+  budget              Decimal
+  currency            String   @default("USD")
+  paymentMethod       String   // crypto, fiat, platform_tokens
+  status              String   @default("draft") // draft, active, paused, completed, cancelled
+  startDate           DateTime
+  endDate             DateTime?
+  maxParticipants     Int?
+  currentParticipants Int      @default(0)
+  rewardPerAction     Decimal
+  rewardType          String   // fixed, percentage, tiered
+  requirements        Json?    // Campaign requirements
+  guidelines          Json?    // Campaign guidelines
+  verificationNeeded  Boolean  @default(true)
+  autoApproval        Boolean  @default(false)
+  escrowEnabled       Boolean  @default(true)
+  tags                String?  @default("[]") // JSON array for SQLite
+  tierId              String?
+  isFeatured          Boolean  @default(false)
+  isSponsored         Boolean  @default(false)
+  sponsorInfo         Json?    // Sponsor information
+  targeting           Json?    // Targeting criteria
+  abTestVariant       String?  // A/B test variant
+  metadata            Json?    // Additional campaign data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("shilling_campaigns")
+}
+
+model ShillingParticipation {
+  id              String   @id @default(cuid())
+  campaignId      String
+  participantId   String
+  status          String   @default("applied") // applied, approved, rejected, active, completed, disputed
+  appliedAt       DateTime @default(now())
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  rejectionReason String?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  workSubmitted   Json?    // Links, content, proof of work
+  verificationData Json?   // Verification proof
+  earnings        Decimal  @default(0)
+  paid            Boolean  @default(false)
+  paidAt          DateTime?
+  rating          Int?     // 1-5
+  review          String?
+  disputeStatus   String?  // none, opened, resolved
+  disputeReason   String?
+  metadata        Json?    // Additional participation data
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([campaignId, participantId])
+  @@map("shilling_participations")
+}
+
+model ShillingPayment {
+  id                  String   @id @default(cuid())
+  campaignId          String
+  participantId       String
+  processorId         String?
+  amount              Decimal
+  currency            String   @default("USD")
+  status              String   @default("pending") // pending, processing, completed, failed, refunded
+  paymentMethod       String
+  transactionHash     String?
+  paymentAddress      String?
+  gasFee              Decimal?
+  processingFee       Decimal?
+  platformFee         Decimal?
+  netAmount           Decimal?
+  paidAt              DateTime?
+  refundedAt          DateTime?
+  refundReason        String?
+  refundPolicyId      String?
+  escrowReleaseDate   DateTime?
+  metadata            Json?    // Additional payment data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("shilling_payments")
+}
+
+model ShillingMetrics {
+  id                String   @id @default(cuid())
+  campaignId        String
+  date              DateTime
+  impressions       Int      @default(0)
+  clicks            Int      @default(0)
+  conversions       Int      @default(0)
+  engagement        Decimal? // percentage
+  reach             Int      @default(0)
+  shares            Int      @default(0)
+  comments          Int      @default(0)
+  likes             Int      @default(0)
+  costPerImpression Decimal?
+  costPerClick      Decimal?
+  costPerConversion Decimal?
+  revenue           Decimal?
+  roi               Decimal? // return on investment
+  metadata          Json?    // Additional metrics
+  createdAt         DateTime @default(now())
+
+  @@unique([campaignId, date])
+  @@map("shilling_metrics")
+}
+
+// ========================================
+// MARKETPLACE EXTENDED MODELS
+// ========================================
+
+model MarketplaceVerification {
+  id                  String   @id @default(cuid())
+  projectId           String?
+  campaignId          String?
+  submitterId         String
+  verificationType    String   // project, team, smart_contract, audit
+  status              String   @default("pending") // pending, under_review, approved, rejected, requires_more_info
+  priority            String   @default("normal") // low, normal, high, urgent
+  submittedAt         DateTime @default(now())
+  reviewedAt          DateTime?
+  reviewedBy          String?
+  approvedAt          DateTime?
+  expiresAt           DateTime?
+  verificationLevel   String   @default("basic") // basic, standard, enhanced
+  riskScore           Decimal? @default(0) // 0-100
+  autoApproved        Boolean  @default(false)
+  manualReview        Boolean  @default(true)
+  documents           Json?    // Uploaded documents
+  verificationData    Json?    // Verification results
+  reviewerNotes       String?
+  rejectionReason     String?
+  publicVerification  Boolean  @default(false)
+  verificationBadge   String?  // Badge identifier
+  metadata            Json?    // Additional verification data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("marketplace_verifications")
+}
+
+model CampaignTier {
+  id                  String   @id @default(cuid())
+  name                String   @unique
+  description         String
+  price               Decimal
+  currency            String   @default("USD")
+  duration            Int      // duration in days
+  maxParticipants     Int?
+  features            String?  @default("[]") // JSON array for SQLite
+  visibility          String   // standard, featured, premium, exclusive
+  supportLevel        String   // basic, priority, dedicated
+  customizationLevel  String   // limited, standard, full
+  analyticsLevel      String   // basic, advanced, enterprise
+  isActive            Boolean  @default(true)
+  sortOrder           Int      @default(0)
+  metadata            Json?    // Additional tier data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("campaign_tiers")
+}
+
+model PaymentProcessor {
+  id                  String   @id @default(cuid())
+  name                String   @unique
+  type                String   // crypto, fiat, platform_token
+  supportedCurrencies String?  @default("[]") // JSON array for SQLite
+  processingFee       Decimal  @default(0) // percentage
+  fixedFee            Decimal  @default(0)
+  minAmount           Decimal?
+  maxAmount           Decimal?
+  isActive            Boolean  @default(true)
+  configuration       Json?    // Processor-specific config
+  webhookUrl          String?
+  apiKey              String?
+  apiSecret           String?
+  metadata            Json?    // Additional processor data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("payment_processors")
+}
+
+model RevenueTracking {
+  id                  String   @id @default(cuid())
+  source              String   // campaign, listing, verification, premium
+  sourceId            String?
+  type                String   // commission, fee, revenue, refund
+  amount              Decimal
+  currency            String   @default("USD")
+  status              String   @default("pending") // pending, confirmed, settled, reversed
+  transactionDate     DateTime @default(now())
+  settledAt           DateTime?
+  relatedPaymentId    String?
+  commissionRate      Decimal?
+  commissionAmount    Decimal?
+  netAmount           Decimal?
+  description         String?
+  metadata            Json?    // Additional revenue data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("revenue_tracking")
+}
+
+model RefundPolicy {
+  id                  String   @id @default(cuid())
+  name                String   @unique
+  description         String
+  eligibilityCriteria Json?    // Who is eligible for refunds
+  timeWindow          Int      // hours/days for refund eligibility
+  refundPercentage    Decimal  @default(100) // percentage of refund
+  autoRefund          Boolean  @default(false)
+  manualApproval      Boolean  @default(true)
+  isActive            Boolean  @default(true)
+  conditions          Json?    // Specific conditions
+  metadata            Json?    // Additional policy data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("refund_policies")
+}
+
+model UserFeedback {
+  id                  String   @id @default(cuid())
+  userId              String
+  campaignId          String?
+  participationId     String?
+  feedbackType        String   // campaign, platform, support
+  rating              Int      // 1-5
+  title               String?
+  content             String
+  isPublic            Boolean  @default(false)
+  isVerified          Boolean  @default(false)
+  status              String   @default("pending") // pending, approved, rejected, hidden
+  moderatedAt         DateTime?
+  moderatedBy         String?
+  moderatorNotes      String?
+  helpfulVotes        Int      @default(0)
+  response            String?
+  respondedAt         DateTime?
+  respondedBy         String?
+  metadata            Json?    // Additional feedback data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("user_feedback")
+}
+
+model SmartContractAnalysis {
+  id                  String   @id @default(cuid())
+  contractAddress     String   @unique
+  blockchain          String
+  projectId           String?
+  campaignId          String?
+  analysisType        String   // security, audit, verification
+  status              String   @default("pending") // pending, analyzing, completed, failed
+  riskScore           Decimal? @default(0) // 0-100
+  severity            String?  // low, medium, high, critical
+  analysisResult      Json?    // Detailed analysis results
+  vulnerabilities      Json?    // Found vulnerabilities
+  recommendations     Json?    // Security recommendations
+  auditReport         String?  // Link to audit report
+  auditor             String?
+  auditDate           DateTime?
+  lastAnalyzed        DateTime?
+  analysisVersion     String?
+  autoAnalysis        Boolean  @default(true)
+  manualReview        Boolean  @default(false)
+  isVerified          Boolean  @default(false)
+  verifiedBy          String?
+  verifiedAt          DateTime?
+  metadata            Json?    // Additional analysis data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("smart_contract_analysis")
+}
+
+model FeaturedContent {
+  id                  String   @id @default(cuid())
+  title               String
+  description         String
+  contentType         String   // airdrop, campaign, project, tutorial
+  contentId           String
+  priority            Int      @default(0)
+  startDate           DateTime
+  endDate             DateTime?
+  isActive            Boolean  @default(true)
+  isSponsored         Boolean  @default(false)
+  sponsorName         String?
+  sponsorLink         String?
+  sponsorLogo         String?
+  clickTracking       Boolean  @default(true)
+  impressionTracking  Boolean  @default(true)
+  maxImpressions      Int?
+  currentImpressions  Int      @default(0)
+  maxClicks           Int?
+  currentClicks       Int      @default(0)
+  budget              Decimal?
+  spent               Decimal  @default(0)
+  targeting           Json?    // Targeting criteria
+  metadata            Json?    // Additional content data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("featured_content")
+}
+
+model ABTest {
+  id                  String   @id @default(cuid())
+  name                String
+  description         String
+  campaignId          String?
+  testType            String   // title, description, image, cta, targeting
+  variants            Json     // Test variants data
+  trafficSplit        Json     // Traffic allocation percentages
+  status              String   @default("draft") // draft, active, paused, completed
+  startDate           DateTime?
+  endDate             DateTime?
+  confidence          Decimal? // Statistical confidence
+  winner              String?  // Winning variant
+  metrics             Json?    // Test metrics
+  isActive            Boolean  @default(true)
+  metadata            Json?    // Additional test data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("ab_tests")
+}
+
+model MarketplaceSettings {
+  id                  String   @id @default(cuid())
+  key                 String   @unique
+  value               Json
+  description         String?
+  category            String   @default("general")
+  isPublic            Boolean  @default(false)
+  isActive            Boolean  @default(true)
+  metadata            Json?    // Additional settings data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("marketplace_settings")
+}
+
+model AuditReport {
+  id                  String   @id @default(cuid())
+  auditorId           String
+  targetId            String   // Can be campaign, project, or user ID
+  targetType          String   // campaign, project, user
+  auditType           String   // security, compliance, quality
+  status              String   @default("pending") // pending, in_progress, completed, failed
+  priority            String   @default("normal") // low, normal, high, urgent
+  score               Decimal? // 0-100
+  findings            Json?    // Audit findings
+  recommendations      Json?    // Recommendations
+  riskLevel           String?  // low, medium, high, critical
+  autoApproved        Boolean  @default(false)
+  manualReview        Boolean  @default(true)
+  reviewedAt          DateTime?
+  approvedAt          DateTime?
+  expiresAt           DateTime?
+  publicReport        Boolean  @default(false)
+  reportUrl           String?
+  metadata            Json?    // Additional audit data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("audit_reports")
+}
+
+// ========================================
+// SECURITY MODULE
+// ========================================
+
+model SecurityIncident {
+  id                  String   @id @default(cuid())
+  incidentType        String   // scam, drainer, phishing, hack, vulnerability
+  severity            String   // low, medium, high, critical
+  status              String   @default("open") // open, investigating, resolved, closed
+  title               String
+  description         String
+  projectId           String?
+  campaignId          String?
+  userId              String?
+  reporterId          String?
+  assignedTo          String?
+  blockchain          String?
+  contractAddress     String?
+  maliciousUrl        String?
+  transactionHash     String?
+  affectedUsers       Int      @default(0)
+  estimatedLoss       Decimal?
+  currency            String?
+  evidence            Json?    // Screenshots, logs, transaction data
+  timeline            Json?    // Incident timeline
+  mitigationSteps     Json?    // Steps taken to mitigate
+  preventionMeasures  Json?    // Future prevention measures
+  publicDisclosure    Boolean  @default(false)
+  disclosureLevel     String   @default("internal") // internal, partial, full
+  tags                String?  @default("[]") // JSON array for SQLite
+  metadata            Json?    // Additional incident data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("security_incidents")
+}
+
+model ScamReport {
+  id                  String   @id @default(cuid())
+  reportType          String   // project, airdrop, campaign, website, contract
+  projectId           String?
+  airdropId           String?
+  campaignId          String?
+  reporterId          String?
+  status              String   @default("pending") // pending, under_review, verified, false_positive, resolved
+  priority            String   @default("normal") // low, normal, high, urgent
+  scamType            String   // fake_project, phishing, rug_pull, honeypot, impersonation
+  confidence          Decimal? @default(0) // 0-100 confidence score
+  title               String
+  description         String
+  evidence            Json?    // Screenshots, links, transaction data
+  suspiciousUrls      String?  @default("[]") // JSON array for SQLite
+  suspiciousAddresses String?  @default("[]") // JSON array for SQLite
+  redFlags            Json?    // Identified red flags
+  riskScore           Decimal? @default(0) // 0-100
+  impactAssessment    Json?    // Potential impact analysis
+  recommendations     Json?    // Security recommendations
+  verifiedBy          String?
+  verifiedAt          DateTime?
+  resolvedAt          DateTime?
+  resolution          String?
+  publicReport        Boolean  @default(false)
+  tags                String?  @default("[]") // JSON array for SQLite
+  metadata            Json?    // Additional report data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("scam_reports")
+}
+
+model BlacklistEntry {
+  id                  String   @id @default(cuid())
+  entryType           String   // domain, address, contract, email, social_handle
+  value               String   @unique
+  reason              String
+  category            String   // scam, phishing, malware, spam, abuse
+  severity            String   // low, medium, high, critical
+  status              String   @default("active") // active, inactive, expired
+  source              String   // manual, automated, community_report, external
+  confidence          Decimal? @default(0) // 0-100
+  riskScore           Decimal? @default(0) // 0-100
+  expiresAt           DateTime?
+  addedBy             String?
+  verifiedBy          String?
+  verifiedAt          DateTime?
+  evidence            Json?    // Supporting evidence
+  relatedIncidents    String?  @default("[]") // JSON array for SQLite
+  notes               String?
+  metadata            Json?    // Additional entry data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("blacklist_entries")
+}
+
+model DrainerDetection {
+  id                  String   @id @default(cuid())
+  contractAddress     String   @unique
+  blockchain          String
+  projectId           String?
+  campaignId          String?
+  detectionMethod     String   // signature_analysis, behavior_analysis, community_report
+  status              String   @default("detected") // detected, investigating, confirmed, false_positive
+  confidence          Decimal? @default(0) // 0-100
+  riskScore           Decimal? @default(0) // 0-100
+  severity            String   // low, medium, high, critical
+  threatType          String   // token_drainer, approval_drainer, signature_drainer
+  maliciousFunctions  Json?    // List of malicious function signatures
+  suspiciousPatterns  Json?    // Detected suspicious patterns
+  transactionAnalysis Json?    // Analysis of malicious transactions
+  affectedUsers       Int      @default(0)
+  estimatedLoss       Decimal?
+  currency            String?
+  mitigationStatus    String   @default("none") // none, monitoring, blocked, warning
+  warningMessage      String?
+  detectionDetails    Json?    // Detailed detection information
+  verifiedBy          String?
+  verifiedAt          DateTime?
+  blockedAt           DateTime?
+  metadata            Json?    // Additional detection data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("drainer_detections")
+}
+
+model PhishingDetection {
+  id                  String   @id @default(cuid())
+  url                 String   @unique
+  domain              String
+  ipAddress           String?
+  projectId           String?
+  campaignId          String?
+  detectionMethod     String   // url_analysis, content_analysis, domain_similarity, user_report
+  status              String   @default("detected") // detected, investigating, confirmed, false_positive
+  confidence          Decimal? @default(0) // 0-100
+  riskScore           Decimal? @default(0) // 0-100
+  severity            String   // low, medium, high, critical
+  phishingType        String   // credential_harvesting, wallet_drain, fake_airdrop, impersonation
+  targetBrand         String?  // Brand being impersonated
+  similarityScore     Decimal? // Domain similarity to legitimate site
+  contentAnalysis     Json?    // Analysis of page content
+  sslCertificate      Json?    // SSL certificate information
+  hostingInfo         Json?    // Hosting provider information
+  whoisInfo           Json?    // Domain registration information
+  screenshots         Json?    // Screenshots of the phishing site
+  reportedBy          String?
+  verifiedBy          String?
+  verifiedAt          DateTime?
+  blockedAt           DateTime?
+  mitigationStatus    String   @default("none") // none, monitoring, blocked, warning
+  warningMessage      String?
+  metadata            Json?    // Additional detection data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("phishing_detections")
+}
+
+model SecurityAlert {
+  id                  String   @id @default(cuid())
+  alertType           String   // scam_detected, drainer_found, phishing_site, security_breach
+  severity            String   // low, medium, high, critical
+  status              String   @default("active") // active, acknowledged, resolved, dismissed
+  title               String
+  message             String
+  targetAudience      String   // all_users, specific_users, creators, administrators
+  userIds             String?  @default("[]") // JSON array for SQLite - specific user IDs
+  projectId           String?
+  campaignId          String?
+  relatedIncidentId   String?
+  actionRequired      Boolean  @default(false)
+  actionType          String?  // avoid_interaction, report_scam, change_password, contact_support
+  actionUrl           String?
+  expiresAt           DateTime?
+  acknowledgedBy      String?  @default("[]") // JSON array for SQLite
+  dismissedBy         String?  @default("[]") // JSON array for SQLite
+  metadata            Json?    // Additional alert data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("security_alerts")
+}
+
+model SecurityEducation {
+  id                  String   @id @default(cuid())
+  title               String
+  slug                String   @unique
+  contentType         String   // article, video, tutorial, quiz, guide
+  category            String   // basics, scam_protection, drainer_protection, phishing_protection, best_practices
+  difficulty          String   // beginner, intermediate, advanced
+  content             String   // Markdown content
+  summary             String?
+  thumbnail           String?
+  videoUrl            String?
+  readingTime         Int?     // minutes
+  quizQuestions      Json?    // Quiz questions and answers
+  keyPoints           Json?    // Key learning points
+  relatedResources   Json?    // Links to related resources
+  tags                String?  @default("[]") // JSON array for SQLite
+  viewCount           Int      @default(0)
+  likeCount           Int      @default(0)
+  isPublished         Boolean  @default(false)
+  isFeatured          Boolean  @default(false)
+  sortOrder           Int      @default(0)
+  metadata            Json?    // Additional education data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("security_education")
+}
+
+model UserSecurityProgress {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  securityScore       Decimal  @default(0) // 0-100
+  completedModules    String?  @default("[]") // JSON array for SQLite
+  quizScores          Json?    // Quiz scores by module
+  achievements        String?  @default("[]") // JSON array for SQLite
+  lastActivityAt      DateTime?
+  streakDays          Int      @default(0)
+  totalStudyTime      Int      @default(0) // minutes
+  securityLevel       String   @default("beginner") // beginner, intermediate, advanced, expert
+  riskProfile         String   @default("normal") // conservative, normal, aggressive
+  recommendations      Json?    // Personalized recommendations
+  metadata            Json?    // Additional progress data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("user_security_progress")
+}
+
+model SecuritySettings {
+  id                  String   @id @default(cuid())
+  key                 String   @unique
+  value               Json
+  description         String?
+  category            String   @default("general") // detection, alerts, education, blocking
+  isPublic            Boolean  @default(false)
+  isActive            Boolean  @default(true)
+  metadata            Json?    // Additional settings data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("security_settings")
+}
+
+// ========================================
+// ANALYTICS & MACHINE LEARNING
+// ========================================
+
+model UserBehavior {
+  id                  String   @id @default(cuid())
+  userId              String?
+  sessionId           String?
+  eventType           String   // page_view, click, scroll, form_submit, airdrop_interact, campaign_view
+  eventName           String?
+  eventData           Json?    // Event-specific data
+  pageUrl             String?
+  pageTitle           String?
+  referrer            String?
+  userAgent           String?
+  ipAddress           String?
+  geolocation         Json?    // Country, city, coordinates
+  deviceInfo          Json?    // Device type, OS, browser
+  duration            Int?     // Time spent on page/action (seconds)
+  scrollDepth         Decimal? // Scroll percentage
+  timestamp           DateTime @default(now())
+  metadata            Json?    // Additional behavior data
+
+  @@index([userId, timestamp])
+  @@index([eventType, timestamp])
+  @@index([sessionId])
+  @@map("user_behavior")
+}
+
+model AirdropAnalytics {
+  id                  String   @id @default(cuid())
+  airdropId           String
+  date                DateTime
+  views               Int      @default(0)
+  uniqueViews         Int      @default(0)
+  clicks              Int      @default(0)
+  registrations       Int      @default(0)
+  completions         Int      @default(0)
+  shares              Int      @default(0)
+  engagementRate      Decimal? @default(0) // percentage
+  conversionRate      Decimal? @default(0) // percentage
+  avgTimeToRegister   Int?     // minutes
+  avgTimeToComplete   Int?     // minutes
+  dropoffRate         Decimal? @default(0) // percentage
+  revenueGenerated    Decimal? @default(0)
+  costPerAcquisition  Decimal?
+  socialReach         Int      @default(0)
+  socialEngagement    Int      @default(0)
+  sentimentScore      Decimal? // -1 to 1
+  predictionAccuracy  Decimal? // ML model accuracy
+  riskScore           Decimal? @default(0) // 0-100
+  metadata            Json?    // Additional analytics data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([airdropId, date])
+  @@map("airdrop_analytics")
+}
+
+model MarketData {
+  id                  String   @id @default(cuid())
+  symbol              String
+  blockchain          String
+  price               Decimal?
+  marketCap           Decimal?
+  volume24h           Decimal?
+  change24h           Decimal?
+  change7d            Decimal?
+  change30d           Decimal?
+  circulatingSupply   Decimal?
+  totalSupply         Decimal?
+  holders             Int?
+  transactions24h     Int?
+  gasPrice            Decimal?
+  networkUtilization  Decimal?
+  sentiment           Decimal? // -1 to 1
+  trendingScore       Decimal? // 0-100
+  predictionScore     Decimal? // ML prediction score
+  metadata            Json?    // Additional market data
+  timestamp           DateTime @default(now())
+
+  @@unique([symbol, blockchain, timestamp])
+  @@index([symbol, timestamp])
+  @@map("market_data")
+}
+
+model OnChainData {
+  id                  String   @id @default(cuid())
+  transactionHash     String   @unique
+  blockchain          String
+  blockNumber         BigInt?
+  blockTimestamp      DateTime?
+  fromAddress         String?
+  toAddress           String?
+  contractAddress     String?
+  value               Decimal?
+  gasUsed             BigInt?
+  gasPrice            Decimal?
+  gasFee              Decimal?
+  transactionType     String?  // transfer, approval, swap, stake, etc.
+  methodName          String?
+  inputParams         Json?
+  logs                Json?
+  riskScore           Decimal? @default(0) // 0-100
+  isSuspicious        Boolean  @default(false)
+  suspicionReason     String?
+  metadata            Json?    // Additional on-chain data
+  timestamp           DateTime @default(now())
+
+  @@index([blockchain, blockTimestamp])
+  @@index([fromAddress, timestamp])
+  @@index([toAddress, timestamp])
+  @@map("onchain_data")
+}
+
+model MLPrediction {
+  id                  String   @id @default(cuid())
+  modelType           String   // airdrop_potential, risk_assessment, price_prediction, user_behavior
+  modelVersion        String
+  inputFeatures       Json     // Features used for prediction
+  prediction          Json     // Prediction results
+  confidence          Decimal  // 0-1
+  accuracy            Decimal? // Historical accuracy
+  targetId            String?  // airdropId, projectId, userId, etc.
+  targetType          String?  // airdrop, project, user, etc.
+  predictionDate      DateTime // Date being predicted for
+  actualValue         Decimal? // Actual value when available
+  error               Decimal? // Prediction error
+  isTrainingData      Boolean  @default(false)
+  metadata            Json?    // Additional prediction data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([modelType, predictionDate])
+  @@index([targetId, targetType])
+  @@map("ml_predictions")
+}
+
+model UserPortfolio {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  totalValue          Decimal  @default(0)
+  totalInvested       Decimal  @default(0)
+  totalReturns        Decimal  @default(0)
+  roiPercentage       Decimal  @default(0)
+  holdings            Json     // Token holdings: {symbol, amount, value, costBasis}
+  transactions        Json     // Transaction history
+  performanceMetrics  Json     // Performance metrics by period
+  riskMetrics         Json     // Risk assessment metrics
+  diversificationScore Decimal @default(0) // 0-100
+  lastUpdated         DateTime @default(now())
+  metadata            Json?    // Additional portfolio data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("user_portfolio")
+}
+
+model PersonalizedRecommendation {
+  id                  String   @id @default(cuid())
+  userId              String
+  recommendationType  String   // airdrop, campaign, educational_content, security_tip
+  targetId            String?  // airdropId, campaignId, contentId, etc.
+  targetType          String?  // airdrop, campaign, content, etc.
+  title               String
+  description         String
+  priority            String   @default("medium") // low, medium, high, urgent
+  score               Decimal  // Relevance score 0-1
+  reason              String?  // Why this was recommended
+  metadata            Json?    // Additional recommendation data
+  status              String   @default("pending") // pending, viewed, dismissed, accepted, rejected
+  viewedAt            DateTime?
+  dismissedAt         DateTime?
+  acceptedAt          DateTime?
+  rejectedAt          DateTime?
+  expiresAt           DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([userId, status, priority])
+  @@index([recommendationType, score])
+  @@map("personalized_recommendations")
+}
+
+model UserPreferences {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  interests           Json?    // User interests and preferences
+  riskTolerance       String   @default("medium") // low, medium, high
+  preferredCategories String?  @default("[]") // JSON array for SQLite
+  notificationSettings Json?   // Notification preferences
+  dashboardSettings   Json?    // Dashboard customization
+  privacySettings     Json?    // Privacy and data sharing preferences
+  behaviorProfile     Json?    // ML-generated behavior profile
+  segmentationTags    String?  @default("[]") // JSON array for SQLite
+  lastAnalyzed        DateTime?
+  metadata            Json?    // Additional preference data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("user_preferences")
+}
+
+model AnalyticsReport {
+  id                  String   @id @default(cuid())
+  userId              String?
+  reportType          String   // portfolio, performance, market, custom
+  title               String
+  description         String?
+  reportData          Json     // Report content and data
+  filters             Json?    // Applied filters
+  dateRange           Json?    // Report date range
+  format              String   @default("json") // json, csv, pdf
+  status              String   @default("generating") // generating, ready, failed, expired
+  fileUrl             String?
+  fileSize            Int?
+  downloadCount       Int      @default(0)
+  maxDownloads        Int?
+  expiresAt           DateTime?
+  generatedAt         DateTime?
+  downloadedAt        DateTime?
+  metadata            Json?    // Additional report data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([userId, reportType, status])
+  @@map("analytics_reports")
+}
+
+model MLModel {
+  id                  String   @id @default(cuid())
+  name                String   @unique
+  version             String
+  type                String   // classification, regression, clustering, recommendation
+  algorithm           String   // neural_network, random_forest, etc.
+  description         String?
+  features            Json     // Input features
+  hyperparameters     Json?    // Model hyperparameters
+  trainingDataStats   Json?    // Training data statistics
+  performanceMetrics  Json?    // Accuracy, precision, recall, etc.
+  modelFile           String?  // Path to model file
+  isActive            Boolean  @default(true)
+  isTraining          Boolean  @default(false)
+  lastTrainedAt       DateTime?
+  trainingInProgress  Boolean  @default(false)
+  accuracy            Decimal? // Current accuracy
+  precision           Decimal?
+  recall              Decimal?
+  f1Score             Decimal?
+  metadata            Json?    // Additional model data
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("ml_models")
+}
+
+model DataPrivacySettings {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  analyticsConsent    Boolean  @default(true)
+  behaviorTracking    Boolean  @default(true)
+  personalization     Boolean  @default(true)
+  dataSharing         Boolean  @default(false)
+  thirdPartyTracking  Boolean  @default(false)
+  cookiesConsent      Boolean  @default(true)
+  retentionPeriod     Int      @default(365) // days
+  anonymizationLevel  String   @default("partial") // none, partial, full
+  dataDeletionRequested Boolean @default(false)
+  dataDeletionAt      DateTime?
+  privacyVersion      String   @default("1.0")
+  metadata            Json?    // Additional privacy settings
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("data_privacy_settings")
+}

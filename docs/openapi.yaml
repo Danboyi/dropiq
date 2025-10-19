@@ -1,0 +1,526 @@
+openapi: 3.0.0
+info:
+  title: DropIQ API
+  version: 1.0.0
+  description: |
+    Comprehensive RESTful API for the DropIQ cryptocurrency airdrop aggregation platform.
+    
+    ## Overview
+    DropIQ is a powerful platform that aggregates cryptocurrency airdrops from across the blockchain ecosystem. 
+    Our API provides developers with access to:
+    - User authentication and management
+    - Airdrop discovery and tracking
+    - Wallet integration and analysis
+    - Shilling marketplace
+    - Security alerts and scam detection
+    - Analytics and reporting
+    
+    ## Authentication
+    The API supports two authentication methods:
+    1. **JWT Bearer Tokens** - For user authentication
+    2. **API Keys** - For third-party integrations
+    
+    ## Rate Limiting
+    - Standard endpoints: 100 requests per 15 minutes
+    - Authentication endpoints: 5 requests per 15 minutes
+    - API endpoints: 60 requests per minute
+    - Upload endpoints: 10 requests per hour
+    
+    ## Base URL
+    - Production: `https://api.dropiq.app/v1`
+    - Development: `http://localhost:3001/v1`
+  contact:
+    name: DropIQ Team
+    email: api@dropiq.app
+    url: https://dropiq.app
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.dropiq.app/v1
+    description: Production server
+  - url: http://localhost:3001/v1
+    description: Development server
+
+security:
+  - bearerAuth: []
+  - apiKeyAuth: []
+
+paths:
+  /health:
+    get:
+      tags:
+        - System
+      summary: Health check endpoint
+      description: Returns the current health status of the API and its dependencies
+      operationId: healthCheck
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  timestamp:
+                    type: string
+                    format: date-time
+                  uptime:
+                    type: number
+                  version:
+                    type: string
+                  environment:
+                    type: string
+                  memory:
+                    type: object
+                    properties:
+                      used:
+                        type: number
+                      total:
+                        type: number
+                  services:
+                    type: object
+                    properties:
+                      database:
+                        type: string
+                      redis:
+                        type: string
+                      external:
+                        type: string
+
+  /:
+    get:
+      tags:
+        - System
+      summary: API information
+      description: Returns basic information about the API
+      operationId: apiInfo
+      responses:
+        '200':
+          description: API information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: DropIQ API
+                  version:
+                    type: string
+                    example: 1.0.0
+                  description:
+                    type: string
+                  endpoints:
+                    type: object
+                    properties:
+                      auth:
+                        type: string
+                        example: /auth
+                      airdrops:
+                        type: string
+                        example: /airdrops
+                      wallets:
+                        type: string
+                        example: /wallets
+                      shilling:
+                        type: string
+                        example: /shilling
+                      security:
+                        type: string
+                        example: /security
+                      analytics:
+                        type: string
+                        example: /analytics
+                      documentation:
+                        type: string
+                        example: /docs
+                  status:
+                    type: string
+                    example: operational
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register new user
+      description: Create a new user account with email and password
+      operationId: registerUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - username
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: User's email address
+                  example: user@example.com
+                username:
+                  type: string
+                  minLength: 3
+                  maxLength: 30
+                  pattern: '^[a-zA-Z0-9_]+$'
+                  description: Unique username (letters, numbers, underscores only)
+                  example: crypto_user
+                password:
+                  type: string
+                  minLength: 8
+                  description: Strong password with uppercase, lowercase, number, and special character
+                  example: SecurePass123!
+                fullName:
+                  type: string
+                  maxLength: 100
+                  description: User's full name
+                  example: John Doe
+                referralCode:
+                  type: string
+                  description: Optional referral code
+                  example: REF123
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User registered successfully
+                  user:
+                    $ref: '#/components/schemas/User'
+                  tokens:
+                    type: object
+                    properties:
+                      accessToken:
+                        type: string
+                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                      refreshToken:
+                        type: string
+                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login user
+      description: Authenticate user with email and password
+      operationId: loginUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: User's email address
+                  example: user@example.com
+                password:
+                  type: string
+                  description: User's password
+                  example: SecurePass123!
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Login successful
+                  user:
+                    $ref: '#/components/schemas/User'
+                  tokens:
+                    type: object
+                    properties:
+                      accessToken:
+                        type: string
+                      refreshToken:
+                        type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        username:
+          type: string
+        fullName:
+          type: string
+        role:
+          type: string
+          enum: [USER, VERIFIED_USER, PREMIUM_USER, MODERATOR, ADMIN]
+        isEmailVerified:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        lastLoginAt:
+          type: string
+          format: date-time
+
+    Airdrop:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [STANDARD, EXCLUSIVE, COMMUNITY, PARTNER]
+        totalAmount:
+          type: number
+        tokenSymbol:
+          type: string
+        status:
+          type: string
+          enum: [UPCOMING, ACTIVE, COMPLETED, CANCELLED]
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        participationCount:
+          type: number
+        maxParticipants:
+          type: number
+        featured:
+          type: boolean
+
+    Wallet:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        address:
+          type: string
+          pattern: '^0x[a-fA-F0-9]{40}$'
+        chain:
+          type: string
+          enum: [ETHEREUM, POLYGON, BSC, ARBITRUM, OPTIMISM, BASE]
+        label:
+          type: string
+        balance:
+          type: number
+        isPrimary:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        lastAnalyzedAt:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+        timestamp:
+          type: string
+          format: date-time
+        path:
+          type: string
+        requestId:
+          type: string
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          example: 20
+        total:
+          type: integer
+          minimum: 0
+          example: 150
+        pages:
+          type: integer
+          minimum: 0
+          example: 8
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Validation Error
+            message: Invalid request data
+            details:
+              - field: email
+                message: Invalid email format
+                code: invalid_string
+            timestamp: 2024-01-01T00:00:00.000Z
+            path: /auth/register
+            requestId: req_123456789
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Authentication Error
+            message: Invalid authentication credentials
+            timestamp: 2024-01-01T00:00:00.000Z
+            path: /auth/profile
+            requestId: req_123456789
+
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Authorization Error
+            message: Insufficient permissions
+            required: create:airdrop
+            current: read:airdrops
+            timestamp: 2024-01-01T00:00:00.000Z
+            path: /airdrops
+            requestId: req_123456789
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Not Found
+            message: Airdrop not found
+            timestamp: 2024-01-01T00:00:00.000Z
+            path: /airdrops/123e4567-e89b-12d3-a456-426614174000
+            requestId: req_123456789
+
+    Conflict:
+      description: Resource conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Conflict
+            message: User with this email already exists
+            timestamp: 2024-01-01T00:00:00.000Z
+            path: /auth/register
+            requestId: req_123456789
+
+    RateLimitExceeded:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Rate Limit Exceeded
+            message: Too many requests, please try again later.
+            retryAfter: 900
+            limit: 5
+            windowMs: 900000
+            timestamp: 2024-01-01T00:00:00.000Z
+            path: /auth/login
+            requestId: req_123456789
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Internal Server Error
+            message: An unexpected error occurred
+            timestamp: 2024-01-01T00:00:00.000Z
+            path: /airdrops
+            requestId: req_123456789
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from authentication endpoints
+
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for third-party integrations
+
+tags:
+  - name: System
+    description: System health and information endpoints
+  - name: Authentication
+    description: User authentication and profile management
+  - name: Airdrops
+    description: Airdrop discovery, tracking, and participation
+  - name: Wallets
+    description: Wallet management and analysis
+  - name: Security
+    description: Security alerts and scam detection
+  - name: Analytics
+    description: Analytics and reporting

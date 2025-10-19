@@ -1,0 +1,818 @@
+{
+  "info": {
+    "name": "DropIQ API Collection",
+    "description": "Comprehensive API testing collection for DropIQ cryptocurrency airdrop aggregation platform",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001/v1",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "walletId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "airdropId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "apiKey",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "API Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": ["{{baseUrl}}"],
+              "path": [""]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"username\": \"test_user\",\n  \"password\": \"SecurePass123!\",\n  \"fullName\": \"Test User\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('accessToken', response.tokens.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', response.tokens.refreshToken);",
+                  "    pm.collectionVariables.set('userId', response.user.id);",
+                  "    pm.test('User registered successfully', () => {",
+                  "        pm.expect(response.message).to.eql('User registered successfully');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('accessToken', response.tokens.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', response.tokens.refreshToken);",
+                  "    pm.collectionVariables.set('userId', response.user.id);",
+                  "    pm.test('Login successful', () => {",
+                  "        pm.expect(response.message).to.eql('Login successful');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('accessToken', response.tokens.accessToken);",
+                  "    pm.test('Token refreshed successfully', () => {",
+                  "        pm.expect(response.message).to.eql('Token refreshed successfully');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Updated Test User\",\n  \"bio\": \"Crypto enthusiast and airdrop hunter\",\n  \"preferences\": {\n    \"emailNotifications\": true,\n    \"theme\": \"dark\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    pm.collectionVariables.unset('accessToken');",
+                  "    pm.collectionVariables.unset('refreshToken');",
+                  "    pm.test('Logout successful', () => {",
+                  "        pm.expect(pm.response.json().message).to.eql('Logout successful');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Airdrops",
+      "item": [
+        {
+          "name": "Get Airdrops",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/airdrops?page=1&limit=20&sortBy=createdAt&sortOrder=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["airdrops"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 && pm.response.json().airdrops.length > 0) {",
+                  "    const firstAirdrop = pm.response.json().airdrops[0];",
+                  "    pm.collectionVariables.set('airdropId', firstAirdrop.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Get Featured Airdrops",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/airdrops/featured",
+              "host": ["{{baseUrl}}"],
+              "path": ["airdrops", "featured"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Airdrop by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/airdrops/{{airdropId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["airdrops", "{{airdropId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Participate in Airdrop",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"walletAddress\": \"0x742d35Cc6634C0532925a3b8D4C9db96C4b4Db45\",\n  \"socialProfiles\": {\n    \"twitter\": \"@crypto_user\",\n    \"discord\": \"crypto_user#1234\"\n  },\n  \"answers\": [\"I'm interested in DeFi and NFTs\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/airdrops/{{airdropId}}/participate",
+              "host": ["{{baseUrl}}"],
+              "path": ["airdrops", "{{airdropId}}", "participate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Participations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/airdrops/my/participations?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["airdrops", "my", "participations"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Wallets",
+      "item": [
+        {
+          "name": "Get Wallets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/wallets?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["wallets"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 && pm.response.json().wallets.length > 0) {",
+                  "    const firstWallet = pm.response.json().wallets[0];",
+                  "    pm.collectionVariables.set('walletId', firstWallet.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Add Wallet",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address\": \"0x742d35Cc6634C0532925a3b8D4C9db96C4b4Db45\",\n  \"chain\": \"ETHEREUM\",\n  \"label\": \"My Main Wallet\",\n  \"isPrimary\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/wallets",
+              "host": ["{{baseUrl}}"],
+              "path": ["wallets"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('walletId', response.wallet.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Get Wallet by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/wallets/{{walletId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["wallets", "{{walletId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Analyze Wallet",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/wallets/{{walletId}}/analyze",
+              "host": ["{{baseUrl}}"],
+              "path": ["wallets", "{{walletId}}", "analyze"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Wallet Recommendations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/wallets/{{walletId}}/recommendations",
+              "host": ["{{baseUrl}}"],
+              "path": ["wallets", "{{walletId}}", "recommendations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Wallet",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"Updated Wallet Label\",\n  \"isPrimary\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/wallets/{{walletId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["wallets", "{{walletId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Wallet",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/wallets/{{walletId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["wallets", "{{walletId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Security",
+      "item": [
+        {
+          "name": "Get Scam Reports",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/security/scam-reports?page=1&limit=20&verified=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["security", "scam-reports"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "verified",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Scam Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Suspicious Airdrop Website\",\n  \"description\": \"This website is asking for private keys and wallet connections without proper verification\",\n  \"type\": \"PHISHING\",\n  \"severity\": \"HIGH\",\n  \"targetUrl\": \"https://suspicious-airdrop.com\",\n  \"targetProject\": \"Fake Airdrop Project\",\n  \"evidence\": [\"https://example.com/evidence1.png\"],\n  \"tags\": [\"phishing\", \"fake-airdrop\", \"scam\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/security/scam-reports",
+              "host": ["{{baseUrl}}"],
+              "path": ["security", "scam-reports"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Analyze Potential Scam",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"url\": \"https://suspicious-airdrop.com\",\n  \"description\": \"Website claiming to give away free tokens but asking for wallet connection and private key\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/security/analyze",
+              "host": ["{{baseUrl}}"],
+              "path": ["security", "analyze"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Security Alerts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/security/alerts?active=true&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["security", "alerts"],
+              "query": [
+                {
+                  "key": "active",
+                  "value": "true"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Scam Reports",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/security/my/reports?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["security", "my", "reports"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Get Platform Overview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/overview?startDate=2024-01-01T00:00:00Z&endDate=2024-12-31T23:59:59Z&granularity=month&metrics=users,airdrops,participations,wallets,scam_reports",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "overview"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01T00:00:00Z"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-12-31T23:59:59Z"
+                },
+                {
+                  "key": "granularity",
+                  "value": "month"
+                },
+                {
+                  "key": "metrics",
+                  "value": "users,airdrops,participations,wallets,scam_reports"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/users/{{userId}}?startDate=2024-01-01T00:00:00Z&endDate=2024-12-31T23:59:59Z&granularity=month",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "users", "{{userId}}"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01T00:00:00Z"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-12-31T23:59:59Z"
+                },
+                {
+                  "key": "granularity",
+                  "value": "month"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Airdrop Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/airdrops/{{airdropId}}?startDate=2024-01-01T00:00:00Z&endDate=2024-12-31T23:59:59Z&granularity=day",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "airdrops", "{{airdropId}}"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01T00:00:00Z"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-12-31T23:59:59Z"
+                },
+                {
+                  "key": "granularity",
+                  "value": "day"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate AI Insights",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"platform_health\",\n  \"timeframe\": {\n    \"startDate\": \"2024-01-01T00:00:00Z\",\n    \"endDate\": \"2024-12-31T23:59:59Z\"\n  },\n  \"focus\": \"user engagement and retention\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/analytics/insights",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "insights"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global pre-request script",
+          "console.log('Request sent at: ' + new Date().toISOString());"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test script",
+          "pm.test('Response time is less than 5000ms', () => {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "pm.test('Response has proper Content-Type', () => {",
+          "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+          "});"
+        ]
+      }
+    }
+  ]
+}
