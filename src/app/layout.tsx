@@ -7,11 +7,6 @@ import { QueryClientProvider } from "@/components/providers/query-client-provide
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { Navigation } from "@/components/layout/navigation";
 import { ConditionalNavigation } from "@/components/layout/conditional-navigation";
-import { clientConfig } from '@/sentry.client.config';
-import * as Sentry from '@sentry/nextjs';
-
-// Initialize Sentry
-Sentry.init(clientConfig);
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

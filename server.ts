@@ -3,12 +3,7 @@ import { setupSocket } from '@/lib/socket';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import next from 'next';
-import { serverConfig } from '@/sentry.server.config';
-import * as Sentry from '@sentry/nextjs';
 import { structuredLogger } from '@/lib/structured-logger';
-
-// Initialize Sentry
-Sentry.init(serverConfig);
 
 const dev = process.env.NODE_ENV !== 'production';
 const currentPort = 3000;
