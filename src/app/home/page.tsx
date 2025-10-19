@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Navigation } from '@/components/layout/navigation';
+import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { 
   TrendingUp, 
   Users, 
@@ -149,220 +149,216 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
+      <DashboardLayout>
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      <div className="container mx-auto px-4 py-6 lg:px-8">
-        <div className="space-y-6">
-          {/* Welcome Header */}
-          <div>
-            <h1 className="text-3xl font-bold">Welcome back, {user?.username || 'User'}!</h1>
-            <p className="text-muted-foreground">
-              Here's your airdrop activity overview and what's coming up next.
-            </p>
-          </div>
+    <DashboardLayout>
+      <div className="space-y-6">
+        {/* Welcome Header */}
+        <div>
+          <h1 className="text-3xl font-bold">Welcome back, {user?.username || 'User'}!</h1>
+          <p className="text-muted-foreground">
+            Here's your airdrop activity overview and what's coming up next.
+          </p>
+        </div>
 
-          {/* Overview Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Airdrops</CardTitle>
-                <Target className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{dashboardData.overview.totalAirdrops}</div>
-                <p className="text-xs text-muted-foreground">
-                  {dashboardData.overview.activeAirdrops} active
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Value</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">${dashboardData.overview.totalValue.toFixed(2)}</div>
-                <p className="text-xs text-muted-foreground">
-                  <span className="text-green-600">+12.5%</span> from last month
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{dashboardData.overview.successRate}%</div>
-                <Progress value={dashboardData.overview.successRate} className="mt-2" />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Wallet Balance</CardTitle>
-                <Wallet className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">${dashboardData.walletStats.totalBalance.toFixed(2)}</div>
-                <p className="text-xs text-muted-foreground">
-                  {dashboardData.walletStats.connectedWallets} wallets
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Recent Activity */}
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5" />
-                  Recent Activity
-                </CardTitle>
-                <CardDescription>
-                  Your latest airdrop activities and notifications
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {dashboardData.recentActivity.map((activity: any) => (
-                    <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg border">
-                      <div className={`p-2 rounded-full ${getStatusColor(activity.status)}`}>
-                        {getStatusIcon(activity.status)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-medium truncate">{activity.title}</h4>
-                          {activity.value && (
-                            <span className="text-sm font-medium text-green-600">
-                              +${activity.value.toFixed(2)}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {activity.description}
-                        </p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Clock className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground">{activity.timestamp}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <Button variant="outline" className="w-full mt-4" asChild>
-                  <Link href="/analytics">
-                    View All Activity
-                    <Eye className="h-4 w-4 ml-2" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Upcoming Airdrops */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Upcoming Airdrops
-                </CardTitle>
-                <CardDescription>
-                  Don't miss these upcoming opportunities
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {dashboardData.upcomingAirdrops.map((airdrop: any) => (
-                    <div key={airdrop.id} className="p-3 rounded-lg border">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="font-medium text-sm">{airdrop.name}</h4>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {airdrop.project}
-                          </p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="outline" className="text-xs">
-                              {airdrop.deadline}
-                            </Badge>
-                            <Badge className={`text-xs ${getDifficultyColor(airdrop.difficulty)}`}>
-                              {airdrop.difficulty}
-                            </Badge>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm font-medium text-green-600">
-                            ${airdrop.estimatedValue}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            est. value
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <Button className="w-full mt-4" asChild>
-                  <Link href="/airdrops">
-                    View All Airdrops
-                    <ArrowUpRight className="h-4 w-4 ml-2" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Quick Actions */}
+        {/* Overview Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-              <CardDescription>
-                Common tasks and tools to manage your airdrop activities
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Airdrops</CardTitle>
+              <Target className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Button variant="outline" className="h-auto p-4 flex flex-col gap-2" asChild>
-                  <Link href="/airdrops">
-                    <Target className="h-6 w-6" />
-                    <span className="text-sm">Browse Airdrops</span>
-                  </Link>
-                </Button>
-                <Button variant="outline" className="h-auto p-4 flex flex-col gap-2" asChild>
-                  <Link href="/wallets">
-                    <Wallet className="h-6 w-6" />
-                    <span className="text-sm">Manage Wallets</span>
-                  </Link>
-                </Button>
-                <Button variant="outline" className="h-auto p-4 flex flex-col gap-2" asChild>
-                  <Link href="/security">
-                    <Shield className="h-6 w-6" />
-                    <span className="text-sm">Security Scan</span>
-                  </Link>
-                </Button>
-                <Button variant="outline" className="h-auto p-4 flex flex-col gap-2" asChild>
-                  <Link href="/analytics">
-                    <TrendingUp className="h-6 w-6" />
-                    <span className="text-sm">View Analytics</span>
-                  </Link>
-                </Button>
-              </div>
+              <div className="text-2xl font-bold">{dashboardData.overview.totalAirdrops}</div>
+              <p className="text-xs text-muted-foreground">
+                {dashboardData.overview.activeAirdrops} active
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Value</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">${dashboardData.overview.totalValue.toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground">
+                <span className="text-green-600">+12.5%</span> from last month
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{dashboardData.overview.successRate}%</div>
+              <Progress value={dashboardData.overview.successRate} className="mt-2" />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Wallet Balance</CardTitle>
+              <Wallet className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">${dashboardData.walletStats.totalBalance.toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground">
+                {dashboardData.walletStats.connectedWallets} wallets
+              </p>
             </CardContent>
           </Card>
         </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Recent Activity */}
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                Recent Activity
+              </CardTitle>
+              <CardDescription>
+                Your latest airdrop activities and notifications
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {dashboardData.recentActivity.map((activity: any) => (
+                  <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg border">
+                    <div className={`p-2 rounded-full ${getStatusColor(activity.status)}`}>
+                      {getStatusIcon(activity.status)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium truncate">{activity.title}</h4>
+                        {activity.value && (
+                          <span className="text-sm font-medium text-green-600">
+                            +${activity.value.toFixed(2)}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {activity.description}
+                      </p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Clock className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">{activity.timestamp}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Button variant="outline" className="w-full mt-4" asChild>
+                <Link href="/analytics">
+                  View All Activity
+                  <Eye className="h-4 w-4 ml-2" />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Upcoming Airdrops */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Upcoming Airdrops
+              </CardTitle>
+              <CardDescription>
+                Don't miss these upcoming opportunities
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {dashboardData.upcomingAirdrops.map((airdrop: any) => (
+                  <div key={airdrop.id} className="p-3 rounded-lg border">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-sm">{airdrop.name}</h4>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {airdrop.project}
+                        </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="outline" className="text-xs">
+                            {airdrop.deadline}
+                          </Badge>
+                          <Badge className={`text-xs ${getDifficultyColor(airdrop.difficulty)}`}>
+                            {airdrop.difficulty}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-medium text-green-600">
+                          ${airdrop.estimatedValue}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          est. value
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Button className="w-full mt-4" asChild>
+                <Link href="/airdrops">
+                  View All Airdrops
+                  <ArrowUpRight className="h-4 w-4 ml-2" />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+            <CardDescription>
+              Common tasks and tools to manage your airdrop activities
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Button variant="outline" className="h-auto p-4 flex flex-col gap-2" asChild>
+                <Link href="/airdrops">
+                  <Target className="h-6 w-6" />
+                  <span className="text-sm">Browse Airdrops</span>
+                </Link>
+              </Button>
+              <Button variant="outline" className="h-auto p-4 flex flex-col gap-2" asChild>
+                <Link href="/wallets">
+                  <Wallet className="h-6 w-6" />
+                  <span className="text-sm">Manage Wallets</span>
+                </Link>
+              </Button>
+              <Button variant="outline" className="h-auto p-4 flex flex-col gap-2" asChild>
+                <Link href="/security">
+                  <Shield className="h-6 w-6" />
+                  <span className="text-sm">Security Scan</span>
+                </Link>
+              </Button>
+              <Button variant="outline" className="h-auto p-4 flex flex-col gap-2" asChild>
+                <Link href="/analytics">
+                  <TrendingUp className="h-6 w-6" />
+                  <span className="text-sm">View Analytics</span>
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

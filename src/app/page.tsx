@@ -62,13 +62,13 @@ export default function Home() {
     });
   };
 
-  const handleViewMarketplace = () => {
+  const handleBrowseAirdrops = () => {
     trackEvent({
       eventType: 'click',
-      eventName: 'view_marketplace_cta',
+      eventName: 'browse_airdrops_cta',
       eventData: {
         source: 'hero_section',
-        button_text: 'View Marketplace'
+        button_text: 'Browse Airdrops'
       }
     });
   };
@@ -114,7 +114,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden pt-20">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-secondary/10" />
         <div className="container mx-auto px-4 py-16 md:py-24 relative">
           <div className="max-w-4xl mx-auto text-center">
@@ -142,16 +142,10 @@ export default function Home() {
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
-              <Link href="/marketplace">
-                <Button variant="outline" size="lg" className="text-base px-8" onClick={handleViewMarketplace}>
-                  View Marketplace
-                  <BarChart3 className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-              <Link href="/security">
-                <Button variant="outline" size="lg" className="text-base px-8">
-                  Security Tools
-                  <Shield className="w-4 h-4 ml-2" />
+              <Link href="/auth">
+                <Button variant="outline" size="lg" className="text-base px-8" onClick={handleBrowseAirdrops}>
+                  Browse Airdrops
+                  <Globe className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
             </div>

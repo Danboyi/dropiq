@@ -17,7 +17,8 @@ import {
   LogOut,
   Moon,
   Sun,
-  ChevronDown
+  ChevronDown,
+  Store
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useAppStore } from '@/lib/store';
@@ -47,6 +48,13 @@ const navigation = [
     icon: TrendingUp,
     current: false,
     badge: '12',
+  },
+  {
+    name: 'Marketplace',
+    href: '/marketplace',
+    icon: Store,
+    current: false,
+    badge: 'New',
   },
   {
     name: 'Wallets',
