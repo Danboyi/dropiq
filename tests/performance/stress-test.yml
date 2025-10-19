@@ -1,0 +1,82 @@
+# Artillery Stress Test Configuration
+config:
+  target: 'http://localhost:3000'
+  phases:
+    - duration: 60
+      arrivalRate: 5
+      name: "Warm up"
+    - duration: 120
+      arrivalRate: 10
+      name: "Ramp up load"
+    - duration: 300
+      arrivalRate: 25
+      name: "Sustained load"
+    - duration: 120
+      arrivalRate: 50
+      name: "Peak load"
+    - duration: 60
+      arrivalRate: 10
+      name: "Cool down"
+  processor: "./stress-test-processor.js"
+
+scenarios:
+  - name: "DropIQ Load Test"
+    weight: 70
+    flow:
+      - get:
+          url: "/"
+          name: "Load landing page"
+      - think: 2
+      - get:
+          url: "/api/health"
+          name: "Health check"
+      - think: 1
+      - post:
+          url: "/api/analytics/behavior"
+          name: "Track behavior"
+          json:
+            eventType: "click"
+            eventName: "button_click"
+            eventData:
+              buttonId: "test"
+            pageUrl: "https://dropiq.com"
+            pageTitle: "DropIQ - Home"
+      - think: 3
+
+  - name: "Authentication Flow"
+    weight: 20
+    flow:
+      - get:
+          url: "/auth"
+          name: "Load auth page"
+      - think: 2
+      - post:
+          url: "/api/auth/signin"
+          name: "Sign in attempt"
+          json:
+            email: "test@example.com"
+            password: "password123"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+      - think: 1
+      - get:
+          url: "/home"
+          name: "Load dashboard"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+
+  - name: "API Stress Test"
+    weight: 10
+    flow:
+      - get:
+          url: "/api/analytics/behavior?limit=100"
+          name: "Fetch analytics data"
+      - think: 1
+      - get:
+          url: "/api/marketplace/campaigns"
+          name: "Fetch marketplace campaigns"
+      - think: 1
+      - get:
+          url: "/api/security/alerts"
+          name: "Fetch security alerts"

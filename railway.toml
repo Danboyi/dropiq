@@ -1,0 +1,73 @@
+# Railway Configuration for DropIQ Platform
+# This file defines all services and deployment settings for Railway PaaS
+
+[build]
+builder = "NIXPACKS"
+
+# Deploy configuration
+[deploy]
+healthcheckPath = "/api/health"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+# Environment variables that should be set in Railway dashboard
+# Required variables:
+# - DATABASE_URL (PostgreSQL connection string)
+# - REDIS_URL (Redis connection string)
+# - JWT_SECRET (for authentication)
+# - NEXT_PUBLIC_WALLET_CONNECT_ID (WalletConnect Project ID)
+# - SENTRY_DSN (for error tracking)
+# - NEXTAUTH_SECRET (for NextAuth.js)
+# - NEXTAUTH_URL (your Railway app URL)
+
+# Main Application Service (Next.js with API routes)
+[[services]]
+name = "app"
+source = "."
+[services.build]
+builder = "NIXPACKS"
+buildCommand = "npm ci && npm run build"
+startCommand = "npm start"
+[services.deploy]
+healthcheckPath = "/api/health"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+[services.env]
+NODE_ENV = "production"
+PORT = "3000"
+
+# Database Service (PostgreSQL Plugin)
+# This will be configured via Railway UI as a PostgreSQL plugin
+# The DATABASE_URL will be automatically injected
+
+# Redis Service (Redis Plugin)
+# This will be configured via Railway UI as a Redis plugin
+# The REDIS_URL will be automatically injected
+
+# Preview Deployments Configuration
+[deploy.preview]
+# Enable preview deployments for pull requests
+enabled = true
+# Auto-destroy preview deployments after 7 days
+autoDestroy = true
+# Set environment variables for preview deployments
+[deploy.preview.env]
+NODE_ENV = "preview"
+
+# Custom Domains (to be configured in Railway UI)
+# [deploy.domains]
+# "dropiq.app" = "app"
+
+# Scaling Configuration (for production)
+[services.scale]
+min = 1
+max = 10
+[services.scale.metrics]
+cpu = 70
+memory = 80
+
+# Database Migration Hook
+[deploy.hooks]
+postDeploy = "npm run db:migrate:deploy"

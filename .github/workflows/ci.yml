@@ -1,0 +1,332 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '18'
+  NEXT_PUBLIC_API_URL: http://localhost:3000/api
+
+jobs:
+  # Code Quality Checks
+  lint-and-format:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Check TypeScript compilation
+        run: npx tsc --noEmit
+
+      - name: Check Prettier formatting
+        run: npx prettier --check .
+
+  # Security Scanning
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Run custom security scan
+        run: node tests/security/vulnerability-scan.js
+
+  # Unit Tests
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup test database
+        run: |
+          npm run db:generate
+          npm run db:push
+
+      - name: Run unit tests
+        run: npm run test:unit -- --coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: unit-tests
+          name: unit-test-coverage
+
+  # Integration Tests
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup test database
+        run: |
+          npm run db:generate
+          npm run db:push
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+
+      - name: Run integration tests
+        run: npm run test:integration
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          NODE_ENV: test
+
+  # E2E Tests
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Setup test database
+        run: |
+          npm run db:generate
+          npm run db:push
+
+      - name: Build application
+        run: npm run build
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+
+      - name: Upload E2E test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Upload E2E test videos
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-videos
+          path: test-results/
+          retention-days: 30
+
+  # Performance Tests
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup test database
+        run: |
+          npm run db:generate
+          npm run db:push
+
+      - name: Build application
+        run: npm run build
+
+      - name: Start application
+        run: npm start &
+        sleep: 10
+
+      - name: Run performance benchmarks
+        run: node tests/performance/benchmark.js
+
+      - name: Run load tests
+        run: npm run test:performance
+        env:
+          CONCURRENT_USERS: 5
+          DURATION: 30
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: performance-results
+          path: test-results/
+          retention-days: 30
+
+  # Build and Deploy (only on main branch)
+  build-and-deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    needs: [lint-and-format, security-scan, unit-tests, integration-tests, e2e-tests]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+
+      - name: Run production build test
+        run: npm start &
+        sleep: 10
+        curl -f http://localhost:3000/api/health || exit 1
+
+      - name: Deploy to staging
+        run: |
+          echo "Deploying to staging..."
+          # Add your deployment commands here
+          # For example: deploy to Vercel, Netlify, AWS, etc.
+
+      - name: Run smoke tests on staging
+        run: |
+          echo "Running smoke tests..."
+          curl -f ${{ secrets.STAGING_URL }}/api/health || exit 1
+
+      - name: Deploy to production
+        if: success()
+        run: |
+          echo "Deploying to production..."
+          # Add your production deployment commands here
+
+      - name: Notify deployment
+        if: success()
+        run: |
+          echo "✅ Deployment successful!"
+          # Add notification logic (Slack, Discord, etc.)
+
+  # Test Results Summary
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, e2e-tests, performance-tests]
+    if: always()
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Generate test summary
+        run: |
+          echo "# Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Unit Tests" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ${{ needs.unit-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Integration Tests" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ${{ needs.integration-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## E2E Tests" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ${{ needs.e2e-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Performance Tests" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ${{ needs.performance-tests.result }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Create test report
+        run: |
+          mkdir -p test-results
+          echo '{"timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)'"}' > test-results/test-summary.json
+          echo '"unitTests": "${{ needs.unit-tests.result }}"' >> test-results/test-summary.json
+          echo '"integrationTests": "${{ needs.integration-tests.result }}"' >> test-results/test-summary.json
+          echo '"e2eTests": "${{ needs.e2e-tests.result }}"' >> test-results/test-summary.json
+          echo '"performanceTests": "${{ needs.performance-tests.result }}"' >> test-results/test-summary.json
+          echo '}' >> test-results/test-summary.json
+
+      - name: Upload test summary
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-summary
+          path: test-results/test-summary.json

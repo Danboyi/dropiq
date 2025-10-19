@@ -345,6 +345,166 @@ describe('Authentication Endpoints', () => {
 
 ## 🚀 Deployment & Scalability
 
+### Railway PaaS Deployment
+
+DropIQ is optimized for Railway's Platform-as-a-Service environment with a fully automated "git-push-to-deploy" workflow.
+
+#### Quick Start with Railway
+
+1. **Connect Your Repository**
+   ```bash
+   # Push your code to GitHub
+   git add .
+   git commit -m "Add Railway deployment configuration"
+   git push origin main
+   ```
+
+2. **Import to Railway**
+   - Go to [railway.app](https://railway.app)
+   - Click "New Project" → "Deploy from GitHub repo"
+   - Select your DropIQ repository
+   - Railway will automatically detect the Next.js application
+
+3. **Configure Environment Variables**
+   Set these in Railway's dashboard:
+   ```bash
+   # Database (Railway PostgreSQL Plugin)
+   DATABASE_URL=postgresql://user:pass@host:port/dbname
+   
+   # Cache (Railway Redis Plugin)  
+   REDIS_URL=redis://host:port
+   
+   # Authentication
+   JWT_SECRET=your-super-secret-jwt-key
+   NEXTAUTH_SECRET=your-nextauth-secret
+   NEXTAUTH_URL=https://your-app.railway.app
+   
+   # External Services
+   NEXT_PUBLIC_WALLET_CONNECT_ID=your-walletconnect-project-id
+   SENTRY_DSN=your-sentry-dsn
+   
+   # Application
+   NODE_ENV=production
+   LOG_LEVEL=info
+   ```
+
+4. **Add Railway Services**
+   - **PostgreSQL Plugin**: Click `+ New` → `PostgreSQL`
+   - **Redis Plugin**: Click `+ New` → `Redis`
+   - Railway automatically injects `DATABASE_URL` and `REDIS_URL`
+
+#### Deployment Configuration
+
+The `railway.toml` file configures all deployment settings with multi-service architecture:
+
+```toml
+# Railway Configuration for DropIQ Platform
+[build]
+builder = "NIXPACKS"
+
+# Frontend Service (Next.js)
+[[services]]
+name = "frontend"
+dockerfilePath = "Dockerfile.frontend"
+healthcheckPath = "/"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+
+# Backend Service (Node.js API)  
+[[services]]
+name = "backend"
+dockerfilePath = "Dockerfile.backend"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+
+# Automatic database migrations
+[deploy.hooks]
+postDeploy = "npm run db:migrate:deploy"
+
+# Preview deployments for PRs
+[deploy.preview]
+enabled = true
+autoDestroy = true
+```
+
+#### Containerized Services
+
+Both frontend and backend use optimized multi-stage Dockerfiles:
+
+```dockerfile
+# Frontend: Dockerfile.frontend
+# - Multi-stage build for minimal image size
+# - Non-root user for security
+# - Health checks and proper signal handling
+
+# Backend: Dockerfile.backend  
+# - TypeScript compilation
+# - Prisma client generation
+# - Structured logging with Railway optimization
+```
+
+#### Enhanced Logging & Monitoring
+
+DropIQ includes Railway-optimized logging with Sentry integration:
+
+```typescript
+// Structured logging for Railway's log viewer
+import { railwayLogger } from '@/lib/railway-logger-enhancer';
+
+// Automatic error tracking with Sentry
+railwayLogger.error('API Error', {
+  requestId: req.requestId,
+  userId: req.user?.id,
+  error: error,
+  service: 'dropiq-backend'
+});
+
+// Performance monitoring
+railwayLogger.logPerformance('database_query', duration, {
+  query: 'SELECT * FROM airdrops',
+  table: 'airdrops'
+});
+```
+
+#### Deployment Workflow
+
+1. **Development**: Push to feature branch → Preview deployment created
+2. **Staging**: Create pull request → Test in preview environment  
+3. **Production**: Merge to main → Automatic production deployment
+
+```bash
+# Complete deployment workflow
+git checkout -b feature/new-analytics
+git commit -m "feat: add analytics dashboard"
+git push origin feature/new-analytics
+
+# Railway automatically:
+# ✅ Creates preview environment
+# ✅ Runs database migrations  
+# ✅ Deploys frontend and backend
+# ✅ Provides preview URL for testing
+# ✅ Cleans up after PR merge
+```
+
+#### Monitoring & Logging
+
+- **Structured Logs**: JSON logging with Pino for Railway's log viewer
+- **Error Tracking**: Sentry integration for production error monitoring
+- **Health Checks**: `/api/health` endpoint for Railway monitoring
+- **Performance**: Built-in Railway metrics for CPU, memory, and network
+
+#### Scaling Configuration
+
+```toml
+[services.scale]
+min = 1
+max = 10
+[services.scale.metrics]
+cpu = 70
+memory = 80
+```
+
 ### Production Considerations
 
 1. **Horizontal Scaling**
@@ -370,11 +530,11 @@ describe('Authentication Endpoints', () => {
 ```bash
 # Production Environment Variables
 NODE_ENV=production
-PORT=3001
+PORT=3000
 DATABASE_URL=postgresql://...
 REDIS_URL=redis://...
 JWT_SECRET=your-jwt-secret
-API_BASE_URL=https://api.dropiq.app
+API_BASE_URL=https://dropiq.app
 ALLOWED_ORIGINS=https://dropiq.app,https://www.dropiq.app
 ```
 

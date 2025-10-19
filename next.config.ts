@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from '@sentry/nextjs';
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -22,4 +23,12 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Sentry configuration
+const sentryWebpackPluginOptions = {
+  // Additional config options for the Sentry Webpack plugin
+  silent: true, // Suppresses all logs
+  // For all available options, see:
+  // https://github.com/getsentry/sentry-webpack-plugin#options
+};
+
+export default withSentryConfig(nextConfig, sentryWebpackPluginOptions);

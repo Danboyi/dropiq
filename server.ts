@@ -3,6 +3,12 @@ import { setupSocket } from '@/lib/socket';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import next from 'next';
+import { serverConfig } from '@/sentry.server.config';
+import * as Sentry from '@sentry/nextjs';
+import { structuredLogger } from '@/lib/structured-logger';
+
+// Initialize Sentry
+Sentry.init(serverConfig);
 
 const dev = process.env.NODE_ENV !== 'production';
 const currentPort = 3000;
@@ -44,12 +50,16 @@ async function createCustomServer() {
 
     // Start the server
     server.listen(currentPort, hostname, () => {
-      console.log(`> Ready on http://${hostname}:${currentPort}`);
-      console.log(`> Socket.IO server running at ws://${hostname}:${currentPort}/api/socketio`);
+      structuredLogger.info('Server started successfully', {
+        port: currentPort,
+        hostname,
+        environment: process.env.NODE_ENV,
+        socketIoPath: '/api/socketio'
+      });
     });
 
   } catch (err) {
-    console.error('Server startup error:', err);
+    structuredLogger.error('Server startup error', err instanceof Error ? err : new Error(String(err)));
     process.exit(1);
   }
 }

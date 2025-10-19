@@ -14,9 +14,8 @@ tests
 *.spec.js
 *.spec.ts
 
-# Next.js
-.next/
-out/
+# Build output
+dist/
 build/
 
 # Misc
@@ -35,12 +34,8 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
-# Vercel
-.vercel
-
 # TypeScript
 *.tsbuildinfo
-next-env.d.ts
 
 # Git
 .git
@@ -77,3 +72,11 @@ temp/
 # Cache
 .cache
 .parcel-cache
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Prisma
+prisma/migrations/
