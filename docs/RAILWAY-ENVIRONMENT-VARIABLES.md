@@ -1,337 +1,341 @@
 # Railway Environment Variables Configuration
 
-This document outlines all environment variables that need to be configured in the Railway dashboard for DropIQ deployment.
+This document provides a comprehensive guide to configuring environment variables for deploying DropIQ on Railway.
 
-## 🚀 Quick Setup
+## 🚋 Required Environment Variables
 
-### Required Variables (Must be set for deployment to work)
+### Core Application Settings
 
-```bash
-# Database Connection (Auto-injected by Railway PostgreSQL Plugin)
-DATABASE_URL=postgresql://user:password@host:port/database
+| Variable | Required | Example | Description |
+|----------|----------|---------|-------------|
+| `NODE_ENV` | ✅ Yes | `production` | Application environment |
+| `PORT` | ✅ Yes | `3000` | Application port (Railway sets this automatically) |
+| `NEXT_PUBLIC_APP_NAME` | ✅ Yes | `DropIQ` | Application name |
+| `NEXT_PUBLIC_APP_VERSION` | ✅ Yes | `1.0.0` | Application version |
 
-# Cache Connection (Auto-injected by Railway Redis Plugin)  
-REDIS_URL=redis://host:port
+### Database Configuration
 
-# Application Environment
-NODE_ENV=production
-PORT=3000
-```
+| Variable | Required | Source | Description |
+|----------|----------|--------|-------------|
+| `DATABASE_URL` | ✅ Yes | Railway PostgreSQL Plugin | PostgreSQL connection string |
+| `POSTGRES_USER` | ✅ Yes | Railway PostgreSQL Plugin | Database username |
+| `POSTGRES_PASSWORD` | ✅ Yes | Railway PostgreSQL Plugin | Database password |
+| `POSTGRES_DB` | ✅ Yes | Railway PostgreSQL Plugin | Database name |
 
-### Authentication Variables
+### Cache Configuration
 
-```bash
-# JWT Configuration
-JWT_SECRET=your-super-secret-jwt-key-min-32-chars
-JWT_EXPIRES_IN=15m
-JWT_REFRESH_EXPIRES_IN=7d
+| Variable | Required | Source | Description |
+|----------|----------|--------|-------------|
+| `REDIS_URL` | ✅ Yes | Railway Redis Plugin | Redis connection string |
+| `REDIS_PASSWORD` | ✅ Yes | Railway Redis Plugin | Redis password |
 
-# NextAuth.js Configuration
-NEXTAUTH_SECRET=your-nextauth-secret-min-32-chars
-NEXTAUTH_URL=https://your-app.railway.app
+### Authentication & Security
 
-# Session Configuration
-SESSION_SECRET=your-session-secret-min-32-chars
-```
+| Variable | Required | Example | Description |
+|----------|----------|---------|-------------|
+| `JWT_SECRET` | ✅ Yes | `your-super-secret-jwt-key-min-32-chars` | JWT signing secret (min 32 chars) |
+| `NEXTAUTH_SECRET` | ✅ Yes | `your-nextauth-secret-min-32-chars` | NextAuth.js secret (min 32 chars) |
+| `NEXTAUTH_URL` | ✅ Yes | `https://your-app.railway.app` | NextAuth.js URL |
 
-### Blockchain & Wallet Variables
+### External Services
 
-```bash
-# WalletConnect Project ID (Required for wallet integration)
-NEXT_PUBLIC_WALLET_CONNECT_ID=your-walletconnect-project-id
+| Variable | Required | Example | Description |
+|----------|----------|---------|-------------|
+| `NEXT_PUBLIC_WALLET_CONNECT_ID` | ✅ Yes | `your-walletconnect-project-id` | WalletConnect project ID |
+| `SENTRY_DSN` | ✅ Yes | `https://your-sentry-dsn` | Sentry error tracking DSN |
 
-# Private Key for server-side operations (Optional)
-PRIVATE_KEY=your-private-key-for-server-operations
+### Railway-Specific Variables
 
-# RPC Endpoints (Optional - defaults to public endpoints)
-ETHEREUM_RPC_URL=https://mainnet.infura.io/v3/your-project-id
-POLYGON_RPC_URL=https://polygon-mainnet.infura.io/v3/your-project-id
-BSC_RPC_URL=https://bsc-dataseed1.binance.org
-```
+| Variable | Required | Auto-set | Description |
+|----------|----------|----------|-------------|
+| `RAILWAY_ENVIRONMENT` | ❌ No | ✅ Yes | Railway environment name |
+| `RAILWAY_SERVICE_NAME` | ❌ No | ✅ Yes | Railway service name |
+| `RAILWAY_PUBLIC_DOMAIN` | ❌ No | ✅ Yes | Railway public domain |
+| `RAILWAY_GIT_COMMIT_SHA` | ❌ No | ✅ Yes | Git commit SHA |
 
-### External API Keys
+## 🔧 Optional Environment Variables
 
-```bash
-# CoinGecko API (Free tier available)
-COINGECKO_API_KEY=your-coingecko-api-key
+### Logging & Monitoring
 
-# Moralis Web3 API (Free tier available)
-MORALIS_API_KEY=your-moralis-api-key
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `LOG_LEVEL` | `info` | Logging level (debug, info, warn, error) |
+| `SENTRY_ENVIRONMENT` | `production` | Sentry environment name |
 
-# Alchemy API (Free tier available)
-ALCHEMY_API_KEY=your-alchemy-api-key
+### Application Features
 
-# ZAI Web Dev SDK (Already installed)
-ZAI_API_KEY=your-zai-api-key
-```
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `NEXT_PUBLIC_SOLANA_NETWORK` | `mainnet-beta` | Solana network (mainnet-beta, devnet, testnet) |
+| `ENABLE_ANALYTICS` | `true` | Enable analytics tracking |
+| `ENABLE_PERFORMANCE_MONITORING` | `true` | Enable performance monitoring |
 
-### Monitoring & Error Tracking
+### Development & Debugging
 
-```bash
-# Sentry Error Tracking (Recommended for production)
-SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
-SENTRY_AUTH_TOKEN=your-sentry-auth-token
-SENTRY_ENVIRONMENT=production
-```
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DEBUG_MODE` | `false` | Enable debug mode |
+| `ENABLE_SWAGGER` | `false` | Enable Swagger UI |
+| `ENABLE_DB_LOGS` | `false` | Enable database query logs |
 
-### Application Configuration
-
-```bash
-# Application URLs
-NEXT_PUBLIC_APP_URL=https://your-app.railway.app
-API_BASE_URL=https://your-backend.railway.app
-
-# CORS Configuration
-ALLOWED_ORIGINS=https://your-app.railway.app,https://your-backend.railway.app
-
-# Logging Configuration
-LOG_LEVEL=info
-RAILWAY_SERVICE_NAME=dropiq
-RAILWAY_ENVIRONMENT=production
-```
-
-### Security Configuration
-
-```bash
-# Rate Limiting
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
-
-# Security Headers
-HELMET_ENABLED=true
-CORS_ENABLED=true
-
-# API Configuration
-API_VERSION=v1
-API_PREFIX=/api
-```
-
-## 📋 Railway Dashboard Setup Steps
-
-### 1. Create Railway Project
-
-1. Go to [railway.app](https://railway.app)
-2. Click "New Project" → "Deploy from GitHub repo"
-3. Select your DropIQ repository
-4. Railway will automatically detect the configuration
-
-### 2. Add Required Services
-
-1. **PostgreSQL Database**
-   - Click `+ New` → `PostgreSQL`
-   - Railway will automatically inject `DATABASE_URL`
-
-2. **Redis Cache**
-   - Click `+ New` → `Redis`
-   - Railway will automatically inject `REDIS_URL`
-
-### 3. Configure Environment Variables
-
-1. Go to your project settings
-2. Click "Variables" tab
-3. Add the required variables from the sections above
-
-#### Critical Variables to Set Manually:
-
-```bash
-# 1. Generate secure secrets
-JWT_SECRET=openssl rand -base64 32
-NEXTAUTH_SECRET=openssl rand -base64 32
-SESSION_SECRET=openssl rand -base64 32
-
-# 2. Add your WalletConnect Project ID
-NEXT_PUBLIC_WALLET_CONNECT_ID=get-from-walletconnect.com
-
-# 3. Configure Sentry (optional but recommended)
-SENTRY_DSN=get-from-sentry.io
-```
-
-### 4. Deploy Services
-
-Railway will automatically create separate services:
-
-- **Frontend Service** (Next.js application)
-- **Backend Service** (Node.js API)
-- **Database Service** (PostgreSQL)
-- **Cache Service** (Redis)
-
-## 🔧 Environment-Specific Configuration
-
-### Development Environment
-
-```bash
-NODE_ENV=development
-LOG_LEVEL=debug
-RAILWAY_ENVIRONMENT=development
-```
-
-### Staging/Preview Environment
-
-```bash
-NODE_ENV=staging
-LOG_LEVEL=info
-RAILWAY_ENVIRONMENT=preview
-SENTRY_ENVIRONMENT=staging
-```
+## 🏗️ Environment-Specific Configuration
 
 ### Production Environment
 
 ```bash
+# Core
 NODE_ENV=production
+PORT=3000
+
+# Database (from Railway PostgreSQL Plugin)
+DATABASE_URL=${{database.DATABASE_URL}}
+POSTGRES_USER=dropiq
+POSTGRES_DB=dropiq_prod
+
+# Cache (from Railway Redis Plugin)
+REDIS_URL=${{redis.REDIS_URL}}
+
+# Authentication
+JWT_SECRET=your-super-secret-jwt-key-min-32-characters
+NEXTAUTH_SECRET=your-nextauth-secret-min-32-characters
+NEXTAUTH_URL=${{frontend.RAILWAY_PUBLIC_DOMAIN}}
+
+# External Services
+NEXT_PUBLIC_WALLET_CONNECT_ID=your-walletconnect-project-id
+SENTRY_DSN=your-sentry-dsn
+
+# Application
+NEXT_PUBLIC_APP_NAME=DropIQ
+NEXT_PUBLIC_APP_VERSION=1.0.0
+NEXT_PUBLIC_SOLANA_NETWORK=mainnet-beta
 LOG_LEVEL=info
-RAILWAY_ENVIRONMENT=production
-SENTRY_ENVIRONMENT=production
 ```
 
-## 🔍 Variable Validation
-
-### Database Connection Test
+### Preview Environment (Pull Requests)
 
 ```bash
-# Test database connection
-curl https://your-backend.railway.app/api/health
+# Core
+NODE_ENV=production
+PORT=3000
 
-# Expected response:
-{
-  "status": "healthy",
-  "database": "connected",
-  "redis": "connected"
-}
+# Database (from Railway PostgreSQL Plugin)
+DATABASE_URL=${{database.DATABASE_URL}}
+POSTGRES_USER=dropiq
+POSTGRES_DB=dropiq_preview
+
+# Cache (from Railway Redis Plugin)
+REDIS_URL=${{redis.REDIS_URL}}
+
+# Authentication
+JWT_SECRET=your-preview-jwt-secret-min-32-characters
+NEXTAUTH_SECRET=your-preview-nextauth-secret-min-32-characters
+NEXTAUTH_URL=${{frontend.RAILWAY_PUBLIC_DOMAIN}}
+
+# External Services
+NEXT_PUBLIC_WALLET_CONNECT_ID=your-walletconnect-project-id
+SENTRY_DSN=your-preview-sentry-dsn
+
+# Application
+NEXT_PUBLIC_APP_NAME=DropIQ (Preview)
+NEXT_PUBLIC_APP_VERSION=1.0.0-preview
+NEXT_PUBLIC_SOLANA_NETWORK=devnet
+LOG_LEVEL=debug
 ```
 
-### Authentication Test
+## 🛠️ Setup Instructions
 
-```bash
-# Test JWT configuration
-curl -X POST https://your-backend.railway.app/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"test123"}'
-```
+### 1. Railway Dashboard Configuration
 
-### Wallet Connection Test
+1. **Go to Railway Dashboard**
+   - Navigate to [railway.app](https://railway.app)
+   - Select your DropIQ project
 
-```bash
-# Test WalletConnect configuration
-# Visit: https://your-app.railway.app/wallets
-# Should show wallet connection modal
-```
+2. **Add Required Plugins**
+   ```bash
+   # Add PostgreSQL Plugin
+   Click "+ New" → "PostgreSQL" → Name: "database"
+   
+   # Add Redis Plugin
+   Click "+ New" → "Redis" → Name: "redis"
+   ```
 
-## 🚨 Security Considerations
+3. **Set Environment Variables**
+   - Go to "Variables" tab
+   - Add all required variables from the table above
+   - Railway automatically injects plugin variables
 
-### Secret Generation
-
-Always use cryptographically secure secrets:
-
-```bash
-# Generate secure secrets
-JWT_SECRET=$(openssl rand -base64 32)
-NEXTAUTH_SECRET=$(openssl rand -base64 32)
-SESSION_SECRET=$(openssl rand -base64 32)
-
-# Never use these example values in production!
-```
-
-### Environment Variable Best Practices
-
-1. **Never commit secrets to Git**
-2. **Use Railway's encrypted variable storage**
-3. **Rotate secrets regularly**
-4. **Use different secrets for different environments**
-5. **Monitor for leaked secrets**
-
-### Required Minimum Lengths
-
-- `JWT_SECRET`: 32 characters minimum
-- `NEXTAUTH_SECRET`: 32 characters minimum
-- `SESSION_SECRET`: 32 characters minimum
-
-## 📊 Monitoring Variables
-
-### Railway-Specific Variables
+### 2. Automatic Variable Injection
 
 Railway automatically provides these variables:
 
 ```bash
-# Railway provides these automatically:
-RAILWAY_SERVICE_NAME=dropiq
+# From PostgreSQL Plugin
+DATABASE_URL=postgresql://user:pass@host:port/dbname
+
+# From Redis Plugin
+REDIS_URL=redis://host:port
+
+# Railway System Variables
 RAILWAY_ENVIRONMENT=production
-RAILWAY_PUBLIC_DOMAIN=your-app.up.railway.app
-RAILWAY_TCP_PROXY_DOMAIN=your-backend.up.railway.app
-PORT=3000
+RAILWAY_SERVICE_NAME=frontend
+RAILWAY_PUBLIC_DOMAIN=your-app.railway.app
+RAILWAY_GIT_COMMIT_SHA=abc123def456
 ```
 
-### Custom Metrics
+### 3. Variable Validation
+
+The application includes validation for required variables:
+
+```typescript
+// Startup validation
+const requiredVars = [
+  'DATABASE_URL',
+  'REDIS_URL',
+  'JWT_SECRET',
+  'NEXTAUTH_SECRET',
+  'NEXT_PUBLIC_WALLET_CONNECT_ID'
+];
+
+const missingVars = requiredVars.filter(varName => !process.env[varName]);
+
+if (missingVars.length > 0) {
+  throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+}
+```
+
+## 🔒 Security Best Practices
+
+### 1. Secret Management
+
+- **Use Railway's built-in secret management**
+- **Never commit secrets to Git**
+- **Use strong, unique secrets**
+- **Rotate secrets regularly**
+
+### 2. Secret Generation
+
+Generate secure secrets using these commands:
 
 ```bash
-# Custom monitoring
-METRICS_ENABLED=true
-PERFORMANCE_MONITORING=true
-HEALTH_CHECK_INTERVAL=30
+# Generate JWT Secret (32+ characters)
+openssl rand -base64 32
+
+# Generate NextAuth Secret (32+ characters)
+openssl rand -base64 32
+
+# Generate Database Password (16+ characters)
+openssl rand -base64 16
 ```
 
-## 🆘 Troubleshooting
+### 3. Environment-Specific Secrets
+
+Use different secrets for different environments:
+
+```bash
+# Production
+JWT_SECRET=prod-super-secret-key-32-chars-minimum
+NEXTAUTH_SECRET=prod-nextauth-secret-32-chars-minimum
+
+# Preview/Staging
+JWT_SECRET=preview-super-secret-key-32-chars-minimum
+NEXTAUTH_SECRET=preview-nextauth-secret-32-chars-minimum
+```
+
+## 🚨 Troubleshooting
 
 ### Common Issues
 
-1. **Database Connection Failed**
-   - Check `DATABASE_URL` is correctly injected
-   - Verify PostgreSQL service is running
-   - Check network connectivity
+1. **Missing DATABASE_URL**
+   ```bash
+   # Solution: Add PostgreSQL plugin
+   # Click "+ New" → "PostgreSQL"
+   ```
 
-2. **Redis Connection Failed**
-   - Check `REDIS_URL` is correctly injected
-   - Verify Redis service is running
-   - Check connection string format
+2. **Missing REDIS_URL**
+   ```bash
+   # Solution: Add Redis plugin
+   # Click "+ New" → "Redis"
+   ```
 
-3. **JWT Authentication Errors**
-   - Verify `JWT_SECRET` is set and >= 32 characters
-   - Check token expiration settings
-   - Verify `NEXTAUTH_SECRET` is set
+3. **JWT_SECRET too short**
+   ```bash
+   # Solution: Generate longer secret
+   openssl rand -base64 32
+   ```
 
-4. **Wallet Connection Issues**
-   - Verify `NEXT_PUBLIC_WALLET_CONNECT_ID` is valid
-   - Check WalletConnect project configuration
-   - Verify CORS settings
+4. **NEXTAUTH_URL mismatch**
+   ```bash
+   # Solution: Use Railway domain variable
+   NEXTAUTH_URL=${{frontend.RAILWAY_PUBLIC_DOMAIN}}
+   ```
 
 ### Debug Commands
 
 ```bash
-# Check environment variables in Railway
+# Check current variables
 railway variables
 
-# View logs
+# View application logs
 railway logs
 
-# Check service status
-railway status
+# Restart service with new variables
+railway up
 
-# Open dashboard
-railway open
+# Shell into container to check variables
+railway shell
+env | grep -E "(DATABASE|REDIS|JWT|NEXTAUTH)"
 ```
 
-### Health Check Endpoints
+### Health Check
+
+Test your configuration:
 
 ```bash
-# Backend health check
-GET /api/health
+# Check health endpoint
+curl https://your-app.railway.app/api/health
 
-# Database health check  
-GET /api/health/database
-
-# Redis health check
-GET /api/health/redis
-
-# Full system health
-GET /api/health/full
+# Expected response includes:
+{
+  "status": "healthy",
+  "services": {
+    "database": { "status": "healthy" },
+    "sentry": { "active": true, "dsnConfigured": true }
+  },
+  "environment": {
+    "railwayEnvironment": "production",
+    "railwayService": "frontend"
+  }
+}
 ```
 
-## 📚 Additional Resources
+## 📋 Checklist
 
-- [Railway Environment Variables Documentation](https://docs.railway.app/reference/variables)
-- [NextAuth.js Environment Variables](https://next-auth.js.org/configuration/options)
-- [WalletConnect Project Setup](https://docs.walletconnect.com/cloud/quickstart)
-- [Sentry Configuration Guide](https://docs.sentry.io/platforms/node/configuration/)
+Before deploying to production, ensure:
 
----
+- [ ] PostgreSQL plugin added and connected
+- [ ] Redis plugin added and connected
+- [ ] All required environment variables set
+- [ ] JWT_SECRET is 32+ characters
+- [ ] NEXTAUTH_SECRET is 32+ characters
+- [ ] NEXTAUTH_URL matches Railway domain
+- [ ] Sentry DSN configured (optional but recommended)
+- [ ] WalletConnect project ID configured
+- [ ] Health check endpoint returns healthy status
+- [ ] Application logs show successful database connection
+- [ ] No startup errors in Railway logs
 
-**Note**: Always test your configuration in a preview environment before deploying to production!
+## 🔄 Variable Updates
+
+To update environment variables:
+
+1. **Go to Railway Dashboard**
+2. **Select your project**
+3. **Go to "Variables" tab**
+4. **Add or update variables**
+5. **Railway automatically restarts services**
+
+For sensitive changes like database credentials:
+1. Update variables
+2. Monitor deployment logs
+3. Verify health checks pass
+4. Test application functionality

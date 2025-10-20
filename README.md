@@ -343,6 +343,275 @@ describe('Authentication Endpoints', () => {
 - **Test Scripts**: Response validation
 - **Documentation**: Request/response examples
 
+## 🚀 Railway PaaS Deployment
+
+DropIQ is optimized for Railway's Platform-as-a-Service environment with a fully automated "git-push-to-deploy" workflow.
+
+### 🎯 Quick Start with Railway
+
+#### 1. Connect Your Repository
+```bash
+# Push your code to GitHub
+git add .
+git commit -m "Add Railway deployment configuration"
+git push origin main
+```
+
+#### 2. Import to Railway
+- Go to [railway.app](https://railway.app)
+- Click "New Project" → "Deploy from GitHub repo"
+- Select your DropIQ repository
+- Railway will automatically detect the Next.js application
+
+#### 3. Configure Environment Variables
+Set these in Railway's dashboard:
+
+**Required Environment Variables:**
+```bash
+# Database (Railway PostgreSQL Plugin)
+DATABASE_URL=postgresql://user:pass@host:port/dbname
+
+# Cache (Railway Redis Plugin)  
+REDIS_URL=redis://host:port
+
+# Authentication
+JWT_SECRET=your-super-secret-jwt-key-min-32-chars
+NEXTAUTH_SECRET=your-nextauth-secret-min-32-chars
+NEXTAUTH_URL=https://your-app.railway.app
+
+# External Services
+NEXT_PUBLIC_WALLET_CONNECT_ID=your-walletconnect-project-id
+SENTRY_DSN=your-sentry-dsn-for-error-tracking
+
+# Application
+NODE_ENV=production
+LOG_LEVEL=info
+NEXT_PUBLIC_APP_NAME=DropIQ
+NEXT_PUBLIC_APP_VERSION=1.0.0
+```
+
+#### 4. Add Railway Services
+- **PostgreSQL Plugin**: Click `+ New` → `PostgreSQL`
+- **Redis Plugin**: Click `+ New` → `Redis`
+- Railway automatically injects `DATABASE_URL` and `REDIS_URL`
+
+### 📋 Deployment Configuration
+
+The `railway.toml` file configures all deployment settings with multi-service architecture:
+
+```toml
+# Railway Configuration for DropIQ Platform
+[build]
+builder = "NIXPACKS"
+
+# Frontend Service (Next.js)
+[[services]]
+name = "frontend"
+runtime = "nodejs"
+buildCommand = "npm run build"
+startCommand = "npm start"
+healthcheckPath = "/api/health"
+port = 3000
+
+# Backend Service (Node.js API)  
+[[services]]
+name = "backend"
+runtime = "nodejs"
+buildCommand = "npm run build:backend"
+startCommand = "npm run start:backend"
+healthcheckPath = "/api/health"
+port = 8000
+
+# Database Service (PostgreSQL Plugin)
+[[services]]
+name = "database"
+runtime = "postgresql"
+
+# Redis Service (Redis Plugin)
+[[services]]
+name = "redis"
+runtime = "redis"
+
+# Automatic database migrations
+[services.deploy]
+postdeployCommand = "bash scripts/railway-deploy.sh"
+```
+
+### 🐳 Containerized Services
+
+Both frontend and backend use optimized multi-stage Dockerfiles:
+
+**Frontend (`Dockerfile.frontend`):**
+- Multi-stage build for minimal image size
+- Non-root user for security
+- Health checks and proper signal handling
+- Optimized for Railway's container runtime
+
+**Backend (`Dockerfile.backend`):**
+- TypeScript compilation and bundling
+- Prisma client generation
+- Structured logging with Railway optimization
+- Database health checks
+
+### 📊 Enhanced Logging & Monitoring
+
+DropIQ includes Railway-optimized logging with Sentry integration:
+
+```typescript
+// Structured logging for Railway's log viewer
+import { logger } from '@/lib/railway-logger';
+
+// Automatic error tracking with Sentry
+logger.error('API Error', {
+  requestId: req.requestId,
+  userId: req.user?.id,
+  error: error,
+  service: 'dropiq-backend'
+});
+
+// Performance monitoring
+logger.logPerformance('database_query', duration, {
+  query: 'SELECT * FROM airdrops',
+  table: 'airdrops'
+});
+```
+
+### 🔄 Deployment Workflow
+
+1. **Development**: Push to feature branch → Preview deployment created
+2. **Staging**: Create pull request → Test in preview environment  
+3. **Production**: Merge to main → Automatic production deployment
+
+```bash
+# Complete deployment workflow
+git checkout -b feature/new-analytics
+git commit -m "feat: add analytics dashboard"
+git push origin feature/new-analytics
+
+# Railway automatically:
+# ✅ Creates preview environment
+# ✅ Runs database migrations  
+# ✅ Deploys frontend and backend
+# ✅ Provides preview URL for testing
+# ✅ Cleans up after PR merge
+```
+
+### 🏥 Health Checks & Monitoring
+
+Comprehensive health check endpoint at `/api/health`:
+
+```json
+{
+  "status": "healthy",
+  "timestamp": "2024-01-15T10:30:00.000Z",
+  "requestId": "health_1642249000000_abc123",
+  "responseTime": "45ms",
+  "services": {
+    "database": {
+      "status": "healthy",
+      "timestamp": "2024-01-15T10:30:00.000Z"
+    },
+    "memory": {
+      "rss": "125MB",
+      "heapTotal": "85MB",
+      "heapUsed": "65MB",
+      "external": "12MB"
+    },
+    "sentry": {
+      "active": true,
+      "dsnConfigured": true
+    }
+  },
+  "environment": {
+    "nodeEnv": "production",
+    "railwayEnvironment": "production",
+    "railwayService": "frontend",
+    "railwayPublicDomain": "your-app.railway.app"
+  },
+  "version": "1.0.0"
+}
+```
+
+### 📈 Scaling Configuration
+
+Automatic scaling based on CPU and memory usage:
+
+```toml
+[scale]
+minInstances = 1
+maxInstances = 10
+
+[scale.autoScaling]
+enabled = true
+cpuThreshold = 70
+memoryThreshold = 80
+scaleUpCooldown = "5m"
+scaleDownCooldown = "10m"
+```
+
+### 🔧 Advanced Features
+
+#### Preview Deployments
+- Automatic preview environments for every pull request
+- Isolated databases and services for testing
+- Auto-cleanup after PR merge
+
+#### Database Migrations
+- Automatic schema migrations on deployment
+- Seed data for initial setup
+- Rollback capabilities
+
+#### Error Tracking
+- Sentry integration for production errors
+- Structured logging for debugging
+- Performance monitoring and alerts
+
+#### Security
+- Environment variable management
+- Secret injection
+- SSL/TLS termination
+- Security headers
+
+### 🚨 Troubleshooting
+
+#### Common Issues:
+
+1. **Database Connection Failed**
+   ```bash
+   # Check DATABASE_URL format
+   # Ensure PostgreSQL plugin is added
+   # Verify network connectivity
+   ```
+
+2. **Build Failures**
+   ```bash
+   # Check build logs in Railway dashboard
+   # Verify Node.js version compatibility
+   # Ensure all dependencies are installed
+   ```
+
+3. **Health Check Failures**
+   ```bash
+   # Check /api/health endpoint
+   # Verify database connectivity
+   # Review application logs
+   ```
+
+#### Debug Commands:
+```bash
+# View logs
+railway logs
+
+# Check environment variables
+railway variables
+
+# Restart services
+railway up
+
+# Open shell in container
+railway shell
+```
+
 ## 🚀 Deployment & Scalability
 
 ### Railway PaaS Deployment

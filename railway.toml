@@ -1,73 +1,129 @@
 # Railway Configuration for DropIQ Platform
-# This file defines all services and deployment settings for Railway PaaS
+# This configuration defines all services for the DropIQ cryptocurrency airdrop platform
 
 [build]
 builder = "NIXPACKS"
 
-# Deploy configuration
-[deploy]
-healthcheckPath = "/api/health"
-healthcheckTimeout = 100
-restartPolicyType = "ON_FAILURE"
-restartPolicyMaxRetries = 10
-
-# Environment variables that should be set in Railway dashboard
-# Required variables:
-# - DATABASE_URL (PostgreSQL connection string)
-# - REDIS_URL (Redis connection string)
-# - JWT_SECRET (for authentication)
-# - NEXT_PUBLIC_WALLET_CONNECT_ID (WalletConnect Project ID)
-# - SENTRY_DSN (for error tracking)
-# - NEXTAUTH_SECRET (for NextAuth.js)
-# - NEXTAUTH_URL (your Railway app URL)
-
-# Main Application Service (Next.js with API routes)
+# Frontend Service (Next.js)
 [[services]]
-name = "app"
+name = "frontend"
 source = "."
+runtime = "nodejs"
+
 [services.build]
-builder = "NIXPACKS"
-buildCommand = "npm ci && npm run build"
+buildCommand = "npm run build"
 startCommand = "npm start"
-[services.deploy]
-healthcheckPath = "/api/health"
-healthcheckTimeout = 100
-restartPolicyType = "ON_FAILURE"
-restartPolicyMaxRetries = 10
+
+[services.health_checks]
+path = "/api/health"
+port = 3000
+interval = 30
+timeout = 10
+retries = 3
+
 [services.env]
 NODE_ENV = "production"
 PORT = "3000"
 
+# Backend Service (Node.js/Express API)
+[[services]]
+name = "backend"
+source = "."
+runtime = "nodejs"
+
+[services.build]
+buildCommand = "npm run build:backend"
+startCommand = "npm run start:backend"
+
+[services.deploy]
+# Run post-deployment script for database setup
+postdeployCommand = "bash scripts/railway-deploy.sh"
+
+[services.health_checks]
+path = "/api/health"
+port = 8000
+interval = 30
+timeout = 10
+retries = 3
+
+[services.env]
+NODE_ENV = "production"
+PORT = "8000"
+
 # Database Service (PostgreSQL Plugin)
-# This will be configured via Railway UI as a PostgreSQL plugin
-# The DATABASE_URL will be automatically injected
+[[services]]
+name = "database"
+runtime = "postgresql"
+
+[services.env]
+POSTGRES_USER = "dropiq"
+POSTGRES_PASSWORD = "${RAILWAY_ENVIRONMENT.POSTGRES_PASSWORD}"
+POSTGRES_DB = "dropiq_prod"
 
 # Redis Service (Redis Plugin)
-# This will be configured via Railway UI as a Redis plugin
-# The REDIS_URL will be automatically injected
+[[services]]
+name = "redis"
+runtime = "redis"
 
-# Preview Deployments Configuration
-[deploy.preview]
+[services.env]
+REDIS_PASSWORD = "${RAILWAY_ENVIRONMENT.REDIS_PASSWORD}"
+
+# Global Environment Variables
+[global.env]
+NEXT_PUBLIC_APP_NAME = "DropIQ"
+NEXT_PUBLIC_APP_DESCRIPTION = "Cryptocurrency Airdrop Platform"
+NEXT_PUBLIC_APP_VERSION = "1.0.0"
+
+# Production Environment Variables
+[global.env.production]
+DATABASE_URL = "${{database.DATABASE_URL}}"
+REDIS_URL = "${{redis.REDIS_URL}}"
+JWT_SECRET = "${RAILWAY_ENVIRONMENT.JWT_SECRET}"
+NEXTAUTH_SECRET = "${RAILWAY_ENVIRONMENT.NEXTAUTH_SECRET}"
+NEXTAUTH_URL = "${{frontend.RAILWAY_PUBLIC_DOMAIN}}"
+SENTRY_DSN = "${RAILWAY_ENVIRONMENT.SENTRY_DSN}"
+NEXT_PUBLIC_WALLET_CONNECT_ID = "${RAILWAY_ENVIRONMENT.NEXT_PUBLIC_WALLET_CONNECT_ID}"
+NEXT_PUBLIC_SOLANA_NETWORK = "mainnet-beta"
+
+# Preview Environment Variables (for Pull Requests)
+[global.env.preview]
+DATABASE_URL = "${{database.DATABASE_URL}}"
+REDIS_URL = "${{redis.REDIS_URL}}"
+JWT_SECRET = "${RAILWAY_ENVIRONMENT.JWT_SECRET_PREVIEW}"
+NEXTAUTH_SECRET = "${RAILWAY_ENVIRONMENT.NEXTAUTH_SECRET_PREVIEW}"
+NEXTAUTH_URL = "${{frontend.RAILWAY_PUBLIC_DOMAIN}}"
+SENTRY_DSN = "${RAILWAY_ENVIRONMENT.SENTRY_DSN_PREVIEW}"
+NEXT_PUBLIC_WALLET_CONNECT_ID = "${RAILWAY_ENVIRONMENT.NEXT_PUBLIC_WALLET_CONNECT_ID}"
+NEXT_PUBLIC_SOLANA_NETWORK = "devnet"
+
+# Deployment Configuration
+[deploy]
 # Enable preview deployments for pull requests
+preview = true
+
+# Auto-cancel previous deployments on new commits
+autoCancel = true
+
+# Health check timeout
+healthcheckTimeout = "300s"
+
+# Rollback configuration
+[deploy.rollback]
+# Auto-rollback on deployment failure
+autoRollback = true
+# Health check threshold before considering deployment successful
+healthCheckThreshold = 3
+
+# Scaling Configuration
+[scale]
+# Minimum and maximum instances for each service
+minInstances = 1
+maxInstances = 10
+
+# Auto-scaling based on CPU and memory
+[scale.autoScaling]
 enabled = true
-# Auto-destroy preview deployments after 7 days
-autoDestroy = true
-# Set environment variables for preview deployments
-[deploy.preview.env]
-NODE_ENV = "preview"
-
-# Custom Domains (to be configured in Railway UI)
-# [deploy.domains]
-# "dropiq.app" = "app"
-
-# Scaling Configuration (for production)
-[services.scale]
-min = 1
-max = 10
-[services.scale.metrics]
-cpu = 70
-memory = 80
-
-# Database Migration Hook
-[deploy.hooks]
-postDeploy = "npm run db:migrate:deploy"
+cpuThreshold = 70
+memoryThreshold = 80
+scaleUpCooldown = "5m"
+scaleDownCooldown = "10m"

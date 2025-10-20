@@ -4,51 +4,31 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Testing
-coverage
-.nyc_output
-__tests__
-tests
-*.test.js
-*.test.ts
-*.spec.js
-*.spec.ts
+# Production builds
+.next
+dist
+build
 
-# Next.js
-.next/
-out/
-build/
-
-# Misc
-.DS_Store
-*.pem
-
-# Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Local env files
-.env*.local
+# Environment variables
 .env
+.env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# Vercel
-.vercel
+# Testing
+coverage
+.nyc_output
 
-# TypeScript
-*.tsbuildinfo
-next-env.d.ts
-
-# Git
+# Development
 .git
 .gitignore
 README.md
+Dockerfile*
+.dockerignore
 
 # Documentation
-docs/
+docs
 *.md
 
 # IDE
@@ -58,6 +38,7 @@ docs/
 *.swo
 
 # OS
+.DS_Store
 Thumbs.db
 
 # Logs
@@ -71,9 +52,21 @@ pids
 *.pid.lock
 
 # Temporary folders
-tmp/
-temp/
+tmp
+temp
 
 # Cache
 .cache
 .parcel-cache
+
+# Testing
+tests
+__tests__
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+
+# Railway specific
+railway.toml
+.railway
