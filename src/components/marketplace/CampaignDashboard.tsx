@@ -17,7 +17,7 @@ import {
   Users, 
   DollarSign, 
   Eye, 
-  Click,
+  MousePointer, // Changed from Click to MousePointer
   Calendar,
   Settings,
   Pause,
@@ -459,7 +459,7 @@ export default function CampaignDashboard() {
                           </div>
                           <div>
                             <div className="flex items-center gap-1 text-muted-foreground">
-                              <Click className="h-3 w-3" />
+                              <MousePointer className="h-3 w-3" />
                               Clicks
                             </div>
                             <div className="font-semibold">{campaign.clicks.toLocaleString()}</div>

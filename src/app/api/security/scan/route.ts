@@ -29,77 +29,85 @@ const phishingCheckSchema = {
   }),
 };
 
+const comprehensiveAnalysisSchema = {
+  body: z.object({
+    address: z.string().regex(/^0x[a-fA-F0-9]{40}$/, 'Invalid Ethereum address'),
+    chainId: z.number().int().positive().optional(),
+  }),
+};
+
 // Security scan for address
 export const POST = asyncHandler(async (req: NextRequest) => {
-  const { address, chainId = 1 } = await req.json();
+  const { searchParams } = new URL(req.url);
+  const type = searchParams.get('type') || 'scan';
+  
+  if (type === 'scan') {
+    const { address, chainId = 1 } = await req.json();
+    const securityScanner = new SecurityScanner();
+    const scan = await securityScanner.scanAddress(address, chainId);
 
-  const securityScanner = new SecurityScanner();
-  const scan = await securityScanner.scanAddress(address, chainId);
+    return NextResponse.json({
+      scan,
+      recommendations: scan.recommendations,
+    });
+  }
+  
+  if (type === 'transaction') {
+    const { from, to, data = '0x', value = '0', chainId = 1 } = await req.json();
+    const securityScanner = new SecurityScanner();
+    const simulation = await securityScanner.simulateTransaction(
+      from,
+      to,
+      data,
+      value,
+      chainId
+    );
 
-  return NextResponse.json({
-    scan,
-    recommendations: scan.recommendations,
-  });
-});
+    return NextResponse.json({
+      simulation,
+      warnings: simulation.potentialRisks,
+      gasEstimate: simulation.gasEstimate,
+    });
+  }
+  
+  if (type === 'phishing') {
+    const { url } = await req.json();
+    const securityScanner = new SecurityScanner();
+    const result = await securityScanner.checkPhishingSite(url);
 
-// Transaction simulation
-export const POST = asyncHandler(async (req: NextRequest) => {
-  const { from, to, data = '0x', value = '0', chainId = 1 } = await req.json();
+    return NextResponse.json({
+      isPhishing: result.isPhishing,
+      confidence: result.confidence,
+      threats: result.threats,
+    });
+  }
+  
+  if (type === 'comprehensive') {
+    const { address, chainId = 1 } = await req.json();
 
-  const securityScanner = new SecurityScanner();
-  const simulation = await securityScanner.simulateTransaction(
-    from,
-    to,
-    data,
-    value,
-    chainId
-  );
+    // Run multiple security checks
+    const [securityScan, transactionAnalysis] = await Promise.all([
+      // Security scan
+      new SecurityScanner().scanAddress(address, chainId),
+      
+      // Transaction analysis for suspicious patterns
+      new OnChainAnalyzer().analyzeTransactions(
+        await new OnChainAnalyzer().getTransactionHistory(address, chainId)
+      ),
+    ]);
 
-  return NextResponse.json({
-    simulation,
-    warnings: simulation.potentialRisks,
-    gasEstimate: simulation.gasEstimate,
-  });
-});
+    // Calculate overall security score
+    const securityScore = calculateSecurityScore(securityScan, transactionAnalysis);
 
-// Phishing site check
-export const POST = asyncHandler(async (req: NextRequest) => {
-  const { url } = await req.json();
-
-  const securityScanner = new SecurityScanner();
-  const result = await securityScanner.checkPhishingSite(url);
-
-  return NextResponse.json({
-    isPhishing: result.isPhishing,
-    confidence: result.confidence,
-    threats: result.threats,
-  });
-});
-
-// Comprehensive wallet security analysis
-export const POST = asyncHandler(async (req: NextRequest) => {
-  const { address, chainId = 1 } = await req.json();
-
-  // Run multiple security checks
-  const [securityScan, transactionAnalysis] = await Promise.all([
-    // Security scan
-    new SecurityScanner().scanAddress(address, chainId),
-    
-    // Transaction analysis for suspicious patterns
-    new OnChainAnalyzer().analyzeTransactions(
-      await new OnChainAnalyzer().getTransactionHistory(address, chainId)
-    ),
-  ]);
-
-  // Calculate overall security score
-  const securityScore = calculateSecurityScore(securityScan, transactionAnalysis);
-
-  return NextResponse.json({
-    securityScan,
-    transactionAnalysis,
-    securityScore,
-    recommendations: generateSecurityRecommendations(securityScan, transactionAnalysis),
-  });
+    return NextResponse.json({
+      securityScan,
+      transactionAnalysis,
+      securityScore,
+      recommendations: generateSecurityRecommendations(securityScan, transactionAnalysis),
+    });
+  }
+  
+  return NextResponse.json({ error: 'Invalid scan type' }, { status: 400 });
 });
 
 function calculateSecurityScore(securityScan: any, transactionAnalysis: any): number {

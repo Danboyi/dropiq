@@ -4,7 +4,6 @@
  */
 
 import * as Sentry from '@sentry/node';
-import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
 export interface SentryConfig {
   dsn: string;
@@ -28,8 +27,6 @@ class SentryManager {
         serviceName: config.serviceName,
         release: config.release,
         integrations: [
-          // Enable Node.js profiling
-          nodeProfilingIntegration(),
           // Add HTTP tracing
           new Sentry.Integrations.Http({ tracing: true }),
           // Add Express integration if available

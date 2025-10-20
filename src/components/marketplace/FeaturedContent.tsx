@@ -11,7 +11,7 @@ import {
   Star, 
   TrendingUp, 
   Eye, 
-  Click, 
+  MousePointer, // Changed from Click to MousePointer 
   Calendar,
   ExternalLink,
   Shield,
@@ -345,7 +345,7 @@ export default function FeaturedContent() {
               <span>{content.currentImpressions.toLocaleString()} views</span>
             </div>
             <div className="flex items-center gap-2">
-              <Click className="h-4 w-4 text-muted-foreground" />
+              <MousePointer className="h-4 w-4 text-muted-foreground" />
               <span>{content.currentClicks.toLocaleString()} clicks</span>
             </div>
           </div>

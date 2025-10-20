@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { checkDatabaseHealth } from "@/lib/db-railway";
 import { logger } from "@/lib/railway-logger";
-import { sentry } from "@/lib/sentry";
+import { sentry } from "@/lib/sentry-simple";
 
 export async function GET() {
   const startTime = Date.now();
