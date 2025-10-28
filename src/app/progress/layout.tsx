@@ -36,9 +36,9 @@ const navigation = [
   { name: "Discover Airdrops", href: "/home", icon: Search },
   { name: "My Progress", href: "/progress", icon: CheckCircle },
   { name: "My Wallet", href: "/wallet", icon: Wallet },
-  { name: "Security Alerts", href: "/home/security", icon: Shield },
-  { name: "Analytics", href: "/home/analytics", icon: TrendingUp },
-  { name: "Settings", href: "/home/settings", icon: Settings },
+  { name: "Security Alerts", href: "/security", icon: Shield },
+  { name: "Analytics", href: "/analytics", icon: TrendingUp },
+  { name: "Settings", href: "/settings", icon: Settings },
 ]
 
 export default function ProgressLayout({
@@ -174,7 +174,7 @@ export default function ProgressLayout({
             </Button>
 
             {/* Settings */}
-            <Link href="/home/settings">
+            <Link href="/settings">
               <Button variant="ghost" size="icon">
                 <Settings className="size-4" />
               </Button>

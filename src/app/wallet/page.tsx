@@ -75,69 +75,6 @@ export default function WalletPage() {
     }
   };
 
-  // Mock data for demonstration
-  const mockData = {
-    eligibleAirdrops: [
-      {
-        airdropId: '1',
-        projectName: 'LayerZero',
-        confidenceScore: 85,
-        reason: 'Active bridge usage and multiple chain interactions detected',
-        requirements: {}
-      },
-      {
-        airdropId: '2', 
-        projectName: 'Arbitrum One',
-        confidenceScore: 72,
-        reason: 'Regular transactions on Arbitrum network',
-        requirements: {}
-      }
-    ],
-    tokenBalances: [
-      {
-        contractAddress: '0x1234567890123456789012345678901234567890',
-        name: 'USDC',
-        symbol: 'USDC',
-        balance: '1250.50',
-        chainId: 1,
-        chainName: 'Ethereum'
-      },
-      {
-        contractAddress: '0x0987654321098765432109876543210987654321',
-        name: 'Wrapped Ether',
-        symbol: 'WETH',
-        balance: '0.75',
-        chainId: 1,
-        chainName: 'Ethereum'
-      }
-    ],
-    nftHoldings: [
-      {
-        contract: {
-          address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-          name: 'Bored Ape Yacht Club',
-          symbol: 'BAYC'
-        },
-        chainId: 1,
-        chainName: 'Ethereum'
-      }
-    ],
-    analysisSummary: {
-      totalChains: 3,
-      totalTransactions: 156,
-      totalTokens: 12,
-      totalNfts: 1,
-      analysisTimestamp: new Date().toISOString()
-    }
-  };
-
-  // Use mock data when no real data is available
-  const displayData = data || mockData;
-  const displayEligibleAirdrops = eligibleAirdrops.length > 0 ? eligibleAirdrops : mockData.eligibleAirdrops;
-  const displayTokenBalances = tokenBalances.length > 0 ? tokenBalances : mockData.tokenBalances;
-  const displayNftHoldings = nftHoldings.length > 0 ? nftHoldings : mockData.nftHoldings;
-  const displayAnalysisSummary = analysisSummary || mockData.analysisSummary;
-
   const formatAddress = (address: string) => {
     if (!address) return '';
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -206,14 +143,23 @@ export default function WalletPage() {
           <div className="space-y-4">
             <div>
               <Label htmlFor="wallet-address">Ethereum Address</Label>
-              <input
-                id="wallet-address"
-                type="text"
-                placeholder="0x..."
-                value={walletAddress}
-                onChange={(e) => setWalletAddress(e.target.value)}
-                className="w-full mt-1 px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              />
+              <div className="flex gap-2 mt-1">
+                <input
+                  id="wallet-address"
+                  type="text"
+                  placeholder="0x..."
+                  value={walletAddress}
+                  onChange={(e) => setWalletAddress(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setWalletAddress('0x742d35Cc6634C0532925a3b8D4C9db96C4b4Db45')}
+                >
+                  Demo
+                </Button>
+              </div>
             </div>
             
             {/* Chain Selection */}
@@ -279,7 +225,7 @@ export default function WalletPage() {
               <TrendingUp className="h-4 w-4 text-blue-500" />
               <div>
                 <p className="text-sm text-muted-foreground">Transactions</p>
-                <p className="text-2xl font-bold">{displayAnalysisSummary?.totalTransactions || 0}</p>
+                <p className="text-2xl font-bold">{analysisSummary?.totalTransactions || 0}</p>
               </div>
             </div>
           </CardContent>
@@ -291,7 +237,7 @@ export default function WalletPage() {
               <Coins className="h-4 w-4 text-green-500" />
               <div>
                 <p className="text-sm text-muted-foreground">Tokens</p>
-                <p className="text-2xl font-bold">{displayAnalysisSummary?.totalTokens || 0}</p>
+                <p className="text-2xl font-bold">{analysisSummary?.totalTokens || 0}</p>
               </div>
             </div>
           </CardContent>
@@ -303,7 +249,7 @@ export default function WalletPage() {
               <ImageIcon className="h-4 w-4 text-purple-500" />
               <div>
                 <p className="text-sm text-muted-foreground">NFTs</p>
-                <p className="text-2xl font-bold">{displayAnalysisSummary?.totalNfts || 0}</p>
+                <p className="text-2xl font-bold">{analysisSummary?.totalNfts || 0}</p>
               </div>
             </div>
           </CardContent>
@@ -315,14 +261,14 @@ export default function WalletPage() {
               <CheckCircle className="h-4 w-4 text-yellow-500" />
               <div>
                 <p className="text-sm text-muted-foreground">Eligible</p>
-                <p className="text-2xl font-bold">{displayEligibleAirdrops.length}</p>
+                <p className="text-2xl font-bold">{eligibleAirdrops.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-  {/* Potential Airdrop Eligibility */}
+      {/* Potential Airdrop Eligibility */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -334,7 +280,7 @@ export default function WalletPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {displayEligibleAirdrops.length === 0 ? (
+          {eligibleAirdrops.length === 0 ? (
             <div className="text-center py-8">
               <Info className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No eligible airdrops found yet</h3>
@@ -344,7 +290,7 @@ export default function WalletPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {displayEligibleAirdrops.map((airdrop) => (
+              {eligibleAirdrops.map((airdrop) => (
                 <div
                   key={airdrop.airdropId}
                   className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
@@ -372,8 +318,8 @@ export default function WalletPage() {
         </CardContent>
       </Card>
 
-  {/* Token Balances */}
-      {displayTokenBalances.length > 0 && (
+      {/* Token Balances */}
+      {tokenBalances.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -386,7 +332,7 @@ export default function WalletPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3 max-h-96 overflow-y-auto">
-              {displayTokenBalances.slice(0, 10).map((token, index) => (
+              {tokenBalances.slice(0, 10).map((token, index) => (
                 <div key={index} className="flex items-center justify-between p-3 border border-border rounded">
                   <div>
                     <p className="font-medium">{token.name || 'Unknown Token'}</p>
@@ -402,9 +348,9 @@ export default function WalletPage() {
                   </div>
                 </div>
               ))}
-              {displayTokenBalances.length > 10 && (
+              {tokenBalances.length > 10 && (
                 <p className="text-center text-sm text-muted-foreground">
-                  And {displayTokenBalances.length - 10} more tokens...
+                  And {tokenBalances.length - 10} more tokens...
                 </p>
               )}
             </div>
@@ -412,8 +358,8 @@ export default function WalletPage() {
         </Card>
       )}
 
-    {/* NFT Holdings */}
-      {displayNftHoldings.length > 0 && (
+      {/* NFT Holdings */}
+      {nftHoldings.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -426,7 +372,7 @@ export default function WalletPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3 max-h-96 overflow-y-auto">
-              {displayNftHoldings.slice(0, 10).map((nft, index) => (
+              {nftHoldings.slice(0, 10).map((nft, index) => (
                 <div key={index} className="flex items-center justify-between p-3 border border-border rounded">
                   <div>
                     <p className="font-medium">{nft.contract?.name || 'Unknown NFT'}</p>
@@ -439,9 +385,9 @@ export default function WalletPage() {
                   </p>
                 </div>
               ))}
-              {displayNftHoldings.length > 10 && (
+              {nftHoldings.length > 10 && (
                 <p className="text-center text-sm text-muted-foreground">
-                  And {displayNftHoldings.length - 10} more NFTs...
+                  And {nftHoldings.length - 10} more NFTs...
                 </p>
               )}
             </div>

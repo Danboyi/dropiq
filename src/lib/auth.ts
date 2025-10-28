@@ -1,5 +1,8 @@
 import bcrypt from 'bcryptjs'
 import { ethers } from 'ethers'
+import { NextAuthOptions } from 'next-auth'
+import { PrismaAdapter } from '@next-auth/prisma-adapter'
+import { db } from '@/lib/db'
 
 const SALT_ROUNDS = 12
 
@@ -39,4 +42,32 @@ export function isValidEthereumAddress(address: string): boolean {
 
 export function normalizeAddress(address: string): string {
   return ethers.getAddress(address)
+}
+
+export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(db),
+  session: {
+    strategy: 'jwt',
+  },
+  providers: [
+    // Add providers here as needed
+  ],
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id
+      }
+      return token
+    },
+    async session({ session, token }) {
+      if (token) {
+        session.user.id = token.id as string
+      }
+      return session
+    },
+  },
+  pages: {
+    signIn: '/auth/signin',
+    error: '/auth/error',
+  },
 }

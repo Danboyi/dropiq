@@ -41,7 +41,7 @@ const navigation = [
   { name: "Settings", href: "/settings", icon: Settings },
 ]
 
-export default function HomeLayout({
+export default function AnalyticsLayout({
   children,
 }: {
   children: React.ReactNode
@@ -152,9 +152,9 @@ export default function HomeLayout({
               <Menu className="size-4" />
             </Button>
             <div className="flex items-center gap-2">
-              <Home className="size-4 text-muted-foreground" />
+              <TrendingUp className="size-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">/</span>
-              <span className="text-sm font-medium">Home</span>
+              <span className="text-sm font-medium">Analytics</span>
             </div>
           </div>
 
