@@ -1,0 +1,136 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(cuid())
+  email          String?  @unique
+  name           String?
+  password       String?  // Hashed password for email/password auth
+  role           String   @default("user") // user, admin, premium
+  isGuest        Boolean  @default(false) // Guest users from wallet connection
+  stripeCustomerId String? // Stripe customer ID for subscriptions
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  userAirdropStatuses UserAirdropStatus[]
+  wallets              Wallet[]
+}
+
+model Airdrop {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String
+  category    String
+  logoUrl     String?
+  websiteUrl  String
+  twitterUrl  String?
+  discordUrl  String?
+  telegramUrl String?
+  riskScore   Int      @default(0)
+  hypeScore   Int      @default(0)
+  status      String   @default("pending") // pending, approved, rejected
+  requirements Json?   // JSON field for flexible requirements
+  notes       String?
+  metadata    Json?    // Additional metadata for airdrop
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userAirdropStatuses UserAirdropStatus[]
+  campaigns          Campaign[]
+}
+
+model UserAirdropStatus {
+  id        String   @id @default(cuid())
+  userId    String
+  airdropId String
+  status    String?  // interested, in_progress, completed
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  airdrop Airdrop @relation(fields: [airdropId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, airdropId])
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  title     String
+  content   String?
+  published Boolean  @default(false)
+  authorId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Campaign {
+  id            String   @id @default(cuid())
+  airdropId     String
+  tier          String   // basic, standard, premium
+  amount        Int      // in cents
+  currency      String   @default("usd")
+  status        String   @default("pending") // pending, paid, approved, rejected, expired
+  paymentStatus String   @default("pending") // pending, paid, refunded, failed
+  stripeSessionId String? @unique
+  stripeInvoiceId  String? @unique
+  startDate     DateTime @default(now())
+  endDate       DateTime
+  submittedBy   String?  // email or identifier of submitter
+  submittedAt   DateTime @default(now())
+  approvedAt    DateTime?
+  approvedBy    String?
+  rejectedAt    DateTime?
+  rejectedBy    String?
+  notes         String?
+  metadata      Json?    // additional campaign data
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  airdrop Airdrop @relation(fields: [airdropId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([endDate])
+  @@index([tier])
+}
+
+model Wallet {
+  id          String   @id @default(cuid())
+  address     String   @unique
+  userId      String?  // null for guest sessions, linked to user after registration
+  nonce       String   // For signature verification
+  lastUsedAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([address])
+  @@index([userId])
+}
+
+model Blacklist {
+  id        String   @id @default(cuid())
+  type      String   // 'domain', 'contract_address'
+  value     String   // The domain or contract address
+  source    String   // e.g., 'goplus', 'admin_report', 'chainabuse'
+  createdAt DateTime @default(now())
+
+  @@index([type])
+  @@index([value])
+  @@unique([type, value])
+}
