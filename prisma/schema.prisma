@@ -1,0 +1,930 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(cuid())
+  email          String?  @unique
+  username       String?  @unique
+  password       String?  // Hashed password for email/password auth
+  role           String   @default("user") // user, admin, premium
+  isGuest        Boolean  @default(false) // Guest users from wallet connection
+  stripeCustomerId String? // Stripe customer ID for subscriptions
+  avatar         String?  // Profile avatar URL
+  bio            String?  // User bio/description
+  reputation     Int      @default(0) // Reputation points
+  level          Int      @default(1) // User level based on experience
+  experience     Int      @default(0) // Experience points
+  lastActive     DateTime @default(now()) // Last activity timestamp
+  preferences    Json?    // User preferences (JSON)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  userAirdropStatuses UserAirdropStatus[]
+  wallets              Wallet[]
+  userProfile           UserProfile?
+  userBehaviorEvents   UserBehaviorEvent[]
+  userPreferences       UserPreference[]
+  mlPredictions         MLPrediction[]
+  riskProfile           RiskProfile?
+  chainPreferences      ChainPreference[]
+  activityPattern       ActivityPattern?
+  preferenceInsights    PreferenceInsight[]
+  preferenceEvolutions  PreferenceEvolution[]
+  userTaskProgress      UserTaskProgress[]
+  airdropReviews        AirdropReview[]
+  airdropComparisons    AirdropComparison[]
+  airdropCollections AirdropCollection[]
+  achievements          UserAchievement[]
+  badges                 UserBadge[]
+  strategies             Strategy[] @relation("StrategyAuthor")
+  strategyShares         StrategyShare[]
+  strategyComments       StrategyComment[]
+  strategyRatings        StrategyRating[]
+  strategyLikes          StrategyLike[]
+  followers              UserFollows[] @relation("UserFollowing")
+  following              UserFollows[] @relation("UserFollowers")
+  userAirdropInteractions UserAirdropInteraction[]
+  automatedTasks         AutomatedTask[] @relation("UserAutomatedTasks")
+  taskExecutions         TaskExecution[] @relation("UserTaskExecutions")
+}
+
+model Airdrop {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String
+  category    String
+  logoUrl     String?
+  websiteUrl  String
+  twitterUrl  String?
+  discordUrl  String?
+  telegramUrl String?
+  riskScore   Int      @default(0)
+  hypeScore   Int      @default(0)
+  status      String   @default("pending") // pending, approved, rejected
+  requirements Json?   // JSON field for flexible requirements
+  notes       String?
+  metadata    Json?    // Additional metadata for airdrop
+  chainId     String?  // Primary blockchain
+  tokenAddress String? // Token contract address
+  totalSupply  Float?   // Total token supply
+  estimatedValue Float? // Estimated airdrop value
+  startDate   DateTime? // When airdrop starts
+  endDate     DateTime? // When airdrop ends
+  isActive    Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
+  tags        Json?    // Array of tags for better categorization as JSON
+  difficulty  String   @default("medium") // easy, medium, hard, expert
+  timeEstimate Int?     // Estimated completion time in minutes
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userAirdropStatuses UserAirdropStatus[]
+  campaigns          Campaign[]
+  tasks              AirdropTask[]
+  userAirdropInteractions UserAirdropInteraction[]
+  reviews            AirdropReview[]
+  airdropComparisons1 AirdropComparison[] @relation("airdrop1")
+  airdropComparisons2 AirdropComparison[] @relation("airdrop2")
+  airdropAlerts        AirdropAlert[]
+  userTaskProgress      UserTaskProgress[]
+  automatedTasks        AutomatedTask[] @relation("AirdropAutomatedTasks")
+}
+
+model UserAirdropStatus {
+  id        String   @id @default(cuid())
+  userId    String
+  airdropId String
+  status    String?  // interested, in_progress, completed
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  airdrop Airdrop @relation(fields: [airdropId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, airdropId])
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  title     String
+  content   String?
+  published Boolean  @default(false)
+  authorId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Campaign {
+  id            String   @id @default(cuid())
+  airdropId     String
+  tier          String   // basic, standard, premium
+  amount        Int      // in cents
+  currency      String   @default("usd")
+  status        String   @default("pending") // pending, paid, approved, rejected, expired
+  paymentStatus String   @default("pending") // pending, paid, refunded, failed
+  stripeSessionId String? @unique
+  stripeInvoiceId  String? @unique
+  startDate     DateTime @default(now())
+  endDate       DateTime
+  submittedBy   String?  // email or identifier of submitter
+  submittedAt   DateTime @default(now())
+  approvedAt    DateTime?
+  approvedBy    String?
+  rejectedAt    DateTime?
+  rejectedBy    String?
+  notes         String?
+  metadata      Json?    // additional campaign data
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  airdrop Airdrop @relation(fields: [airdropId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([endDate])
+  @@index([tier])
+}
+
+model Wallet {
+  id          String   @id @default(cuid())
+  address     String   @unique
+  userId      String?  // null for guest sessions, linked to user after registration
+  nonce       String   // For signature verification
+  lastUsedAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([address])
+  @@index([userId])
+}
+
+model Blacklist {
+  id        String   @id @default(cuid())
+  type      String   // 'domain', 'contract_address'
+  value     String   // The domain or contract address
+  source    String   // e.g., 'goplus', 'admin_report', 'chainabuse'
+  createdAt DateTime @default(now())
+
+  @@index([type])
+  @@index([value])
+  @@unique([type, value])
+}
+
+// AI/ML Infrastructure Models
+
+model UserProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  riskTolerance     Int      @default(50) // 0-100 scale
+  experienceLevel   String   @default("beginner") // beginner, intermediate, advanced, expert
+  preferredChains   Json?    // Array of preferred chain IDs
+  investmentCapacity String? @default("low") // low, medium, high, very_high
+  timeCommitment    String? @default("low") // low, medium, high
+  successRate       Float    @default(0.0) // Historical success rate
+  totalEarned       Float    @default(0.0) // Total earnings from airdrops
+  gasSpent          Float    @default(0.0) // Total gas spent
+  tasksCompleted    Int      @default(0) // Total tasks completed
+  avgTaskTime       Int      @default(0) // Average time per task in minutes
+  lastActiveAt      DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([riskTolerance])
+  @@index([experienceLevel])
+}
+
+model UserBehaviorEvent {
+  id          String   @id @default(cuid())
+  userId      String
+  eventType   String   // page_view, click, wallet_connect, airdrop_interact, task_complete, etc.
+  eventName   String   // Specific event name
+  eventData   Json?    // Event-specific data
+  sessionId   String?  // Session identifier
+  ipAddress   String?  // IP address for security
+  userAgent   String?  // Browser/user agent
+  referrer    String?  // Page referrer
+  duration    Int?     // Event duration in milliseconds
+  timestamp   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([eventType])
+  @@index([timestamp])
+  @@index([sessionId])
+}
+
+model UserPreference {
+  id          String   @id @default(cuid())
+  userId      String
+  category    String   // airdrop_category, chain, risk_level, etc.
+  preference  Json     // Preference data (weights, settings, etc.)
+  confidence  Float    @default(0.5) // ML confidence score 0-1
+  version     Int      @default(1) // For tracking preference evolution
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category, version])
+  @@index([userId])
+  @@index([category])
+}
+
+model MLPrediction {
+  id            String   @id @default(cuid())
+  userId        String
+  modelType     String   // airdrop_recommendation, risk_assessment, success_prediction, etc.
+  modelVersion  String   @default("v1.0")
+  inputFeatures Json     // Features used for prediction
+  prediction    Json     // Prediction results
+  confidence    Float    // Confidence score 0-1
+  actualOutcome Json?    // Actual outcome for model training
+  feedbackScore Float?   // User feedback on prediction quality
+  isCorrect     Boolean? // Whether prediction was correct
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([modelType])
+  @@index([createdAt])
+}
+
+model MLModel {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  type        String   // classification, regression, clustering, etc.
+  version     String   @default("v1.0")
+  description String?
+  parameters  Json?    // Model parameters and configuration
+  isActive    Boolean  @default(true)
+  accuracy    Float?   // Model accuracy metrics
+  precision   Float?   // Model precision metrics
+  recall      Float?   // Model recall metrics
+  f1Score     Float?   // Model F1 score
+  lastTrainedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([type])
+  @@index([isActive])
+}
+
+model AirdropInteraction {
+  id          String   @id @default(cuid())
+  userId      String?
+  airdropId   String
+  interactionType String // view, click, save, start_task, complete_task, share, etc.
+  interactionData Json? // Additional interaction data
+  timestamp   DateTime @default(now())
+
+  @@index([userId])
+  @@index([airdropId])
+  @@index([interactionType])
+  @@index([timestamp])
+}
+
+model FeatureVector {
+  id          String   @id @default(cuid())
+  userId      String
+  vectorType  String   // user_profile, behavior_pattern, airdrop_features, etc.
+  features    Json     // Feature vector data
+  dimensions  Int      // Number of dimensions
+  version     String   @default("v1.0")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([vectorType])
+  @@index([version])
+}
+
+// Enhanced User Preference Profile Models for Task 2
+
+model RiskProfile {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  riskToleranceScore    Float    @default(50.0) // 0-100 scale
+  riskAssessmentData    Json?    // Detailed risk assessment responses
+  financialCapacity     String   @default("low") // low, medium, high, very_high
+  lossAcceptance        Float    @default(5.0) // Percentage of portfolio willing to lose
+  timeHorizon           String   @default("short") // short, medium, long
+  experienceLevel       String   @default("beginner") // beginner, intermediate, advanced, expert
+  technicalKnowledge    Int      @default(3) // 1-10 scale
+  securityConsciousness Int      @default(7) // 1-10 scale
+  previousLosses        Float    @default(0.0) // Total amount lost in scams/failed projects
+  riskBehaviorMetrics   Json?    // Behavioral risk indicators
+  lastAssessmentAt      DateTime @default(now())
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([riskToleranceScore])
+}
+
+model ChainPreference {
+  id                String   @id @default(cuid())
+  userId            String
+  chainId           String   // Chain identifier (eth, polygon, bsc, etc.)
+  chainName         String   // Human-readable chain name
+  preferenceScore   Float    @default(0.0) // 0-100 preference score
+  usageFrequency    Int      @default(0) // Number of interactions
+  totalGasSpent     Float    @default(0.0) // Total gas spent on this chain
+  successRate       Float    @default(0.0) // Success rate on this chain
+  avgGasCost        Float    @default(0.0) // Average gas cost
+  lastUsedAt        DateTime @default(now())
+  preferenceFactors Json?    // Factors contributing to preference
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, chainId])
+  @@index([userId])
+  @@index([chainId])
+  @@index([preferenceScore])
+}
+
+model ActivityPattern {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  dailyActiveTime     Int      @default(0) // Minutes per day
+  weeklyActiveDays    Int      @default(0) // Days per week
+  preferredTimeSlots  Json?    // Preferred time of day slots
+  sessionDuration     Int      @default(0) // Average session in minutes
+  tasksPerSession     Int      @default(0) // Average tasks completed per session
+  peakActivityHours   Json?    // Hours when user is most active
+  consistencyScore    Float    @default(0.0) // How consistent user activity is
+  burstActivity       Boolean  @default(false) // Whether user has burst patterns
+  weekendActivity     Float    @default(0.0) // Weekend vs weekday activity ratio
+  seasonalPatterns    Json?    // Seasonal activity patterns
+  lastAnalyzedAt      DateTime @default(now())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([consistencyScore])
+}
+
+model PreferenceInsight {
+  id                  String   @id @default(cuid())
+  userId              String
+  insightType         String   // risk_pattern, chain_behavior, activity_insight, etc.
+  insightTitle        String
+  insightDescription  String
+  confidenceScore     Float    @default(0.0) // 0-1 confidence
+  impactLevel         String   @default("medium") // low, medium, high, critical
+  actionableRecommendation String?
+  supportingData      Json?    // Data supporting the insight
+  validUntil          DateTime? // When insight expires
+  isRead              Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([insightType])
+  @@index([confidenceScore])
+}
+
+model PreferenceEvolution {
+  id              String   @id @default(cuid())
+  userId          String
+  category        String   // risk, chain, activity, etc.
+  oldValue        Json     // Previous preference value
+  newValue        Json     // New preference value
+  changeReason    String?  // Why the preference changed
+  changeTrigger   String?  // What triggered the change
+  confidenceDelta Float    @default(0.0) // Change in confidence
+  timestamp       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([category])
+  @@index([timestamp])
+}
+
+// Advanced Airdrop Management Models for Task 3
+
+model AirdropTask {
+  id          String   @id @default(cuid())
+  airdropId   String
+  title       String
+  description String
+  type        String   // social_media, transaction, quiz, referral, etc.
+  status      String   @default("pending") // pending, available, completed, failed
+  order       Int      @default(0) // Order in which tasks should be completed
+  isRequired  Boolean  @default(false) // Whether this task is required for airdrop
+  points      Int      @default(0) // Points awarded for completion
+  category    String   @default("general") // Task category
+  tags        Json?    // Array of tags
+  deadline    DateTime? // Task deadline
+  difficulty  String   @default("easy") // easy, medium, hard
+  metadata    Json?    // Task-specific data (URLs, forms, etc.)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  airdrop Airdrop @relation(fields: [airdropId], references: [id], onDelete: Cascade)
+  userTaskProgress UserTaskProgress[]
+}
+
+model UserTaskProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  airdropId   String
+  taskId      String
+  status      String   @default("not_started") // not_started, in_progress, completed, failed
+  progress    Float    @default(0.0) // Progress percentage 0-100
+  reward      Float    @default(0.0) // Reward amount for completing the task
+  startedAt   DateTime?
+  completedAt DateTime?
+  notes       String?
+  metadata    Json?    // Progress-specific data
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  airdrop Airdrop @relation(fields: [airdropId], references: [id], onDelete: Cascade)
+  task AirdropTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, taskId])
+  @@index([userId])
+  @@index([airdropId])
+  @@index([status])
+}
+
+model UserAirdropInteraction {
+  id              String   @id @default(cuid())
+  userId          String?
+  airdropId       String
+  interactionType String   // view, click, save, start_task, complete_task, share, etc.
+  interactionData Json?    // Additional interaction data
+  timestamp       DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  airdrop Airdrop @relation(fields: [airdropId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([airdropId])
+  @@index([interactionType])
+  @@index([timestamp])
+}
+
+model AirdropReview {
+  id          String   @id @default(cuid())
+  airdropId   String
+  userId      String
+  rating      Int      // 1-5 rating
+  title       String   // Review title
+  content     String   // Review content
+  pros        String?  // Positive aspects
+  cons        String?  // Negative aspects
+  isVerified  Boolean  @default(false) // Whether user actually participated
+  helpfulCount Int      @default(0) // Number of helpful votes
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  airdrop Airdrop @relation(fields: [airdropId], references: [id], onDelete: Cascade)
+
+  @@index([airdropId])
+  @@index([userId])
+  @@index([rating])
+}
+
+model AirdropComparison {
+  id              String   @id @default(cuid())
+  userId          String
+  airdropId1      String
+  airdropId2      String
+  winner          String?  // Which airdrop user prefers
+  comparisonData  Json?    // Comparison criteria and scores
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  airdrop1 Airdrop @relation(fields: [airdropId1], references: [id], onDelete: Cascade, name: "airdrop1")
+  airdrop2 Airdrop @relation(fields: [airdropId2], references: [id], onDelete: Cascade, name: "airdrop2")
+
+  @@unique([userId, airdropId1, airdropId2])
+  @@index([userId])
+  @@index([airdropId1])
+  @@index([airdropId2])
+}
+
+model AirdropCollection {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  slug        String   @unique
+  isPublic    Boolean  @default(false)
+  userId      String   // Creator
+  airdropIds  Json?    // Array of airdrop IDs in this collection as JSON
+  metadata    Json?    // Collection-specific data
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isPublic])
+}
+
+model AirdropAlert {
+  id          String   @id @default(cuid())
+  airdropId   String
+  type        String   // price_change, new_task, deadline_reminder, etc.
+  title       String
+  message     String
+  severity    String   @default("info") // info, warning, critical
+  isActive    Boolean  @default(true)
+  metadata    Json?    // Alert-specific data
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  airdrop Airdrop @relation(fields: [airdropId], references: [id], onDelete: Cascade)
+
+  @@index([airdropId])
+  @@index([type])
+  @@index([severity])
+}
+
+// Social Trading & Strategy Sharing Models
+
+model Achievement {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  title         String
+  description   String
+  icon          String   // Icon name or URL
+  category      String   // trading, security, community, exploration, etc.
+  rarity        String   @default("common") // common, rare, epic, legendary
+  points        Int      @default(0) // Points awarded
+  requirement   Json     // Requirements to unlock (conditions, thresholds, etc.)
+  badgeColor    String   @default("#gray") // Badge color
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  userAchievements UserAchievement[]
+
+  @@index([category])
+  @@index([rarity])
+  @@index([isActive])
+}
+
+model UserAchievement {
+  id            String   @id @default(cuid())
+  userId        String
+  achievementId String
+  progress      Float    @default(0.0) // Progress towards achievement (0-100)
+  isUnlocked    Boolean  @default(false)
+  unlockedAt    DateTime?
+  metadata      Json?    // Achievement-specific data
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@index([achievementId])
+  @@index([isUnlocked])
+}
+
+model Badge {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  title       String
+  description String
+  icon        String   // Icon name or URL
+  category    String   // strategy, success, community, expert, etc.
+  type        String   @default("automatic") // automatic, manual, special
+  rarity      String   @default("common") // common, rare, epic, legendary
+  requirements Json?   // Requirements to earn badge
+  benefits    Json?    // Benefits or perks of having this badge
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userBadges UserBadge[]
+
+  @@index([category])
+  @@index([type])
+  @@index([rarity])
+  @@index([isActive])
+}
+
+model UserBadge {
+  id          String   @id @default(cuid())
+  userId      String
+  badgeId     String
+  earnedAt    DateTime @default(now())
+  isActive    Boolean  @default(true) // Whether the badge is currently active
+  isDisplayed Boolean  @default(true) // Whether to display on profile
+  metadata    Json?    // Badge-specific data
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@index([userId])
+  @@index([badgeId])
+  @@index([earnedAt])
+}
+
+model Strategy {
+  id              String   @id @default(cuid())
+  authorId        String   // Creator
+  title           String
+  description     String
+  content         String?  // Full strategy content
+  category        String   // defi, gaming, nft, layer1, layer2, etc.
+  difficulty      String   @default("intermediate") // beginner, intermediate, advanced, expert
+  riskLevel       String   @default("medium") // low, medium, high, extreme
+  estimatedTime   Int      // Estimated completion time in minutes
+  requiredActions Int      @default(0) // Number of required actions
+  potentialReward Float?   // Potential reward amount
+  estimatedProfit Float?   @default(0.0) // Estimated profit
+  successRate     Float    @default(0.0) // Historical success rate
+  steps           Json     // Strategy steps as JSON array
+  tags            Json?    // Tags as JSON array
+  isPublic        Boolean  @default(false)
+  isVerified      Boolean  @default(false) // Verified by experts
+  verificationNotes String?
+  views           Int      @default(0)
+  likes           Int      @default(0)
+  shares          Int      @default(0)
+  rating          Float    @default(0.0)
+  ratingCount     Int      @default(0)
+  metadata        Json?    // Additional strategy data
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  author          User              @relation("StrategyAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  strategyShares  StrategyShare[]
+  comments        StrategyComment[]
+  ratings         StrategyRating[]
+  strategyLikes   StrategyLike[]
+  automatedTasks  AutomatedTask[] @relation("StrategyAutomatedTasks")
+
+  @@index([authorId])
+  @@index([category])
+  @@index([difficulty])
+  @@index([riskLevel])
+  @@index([isPublic])
+  @@index([isVerified])
+  @@index([views])
+  @@index([likes])
+  @@index([rating])
+}
+
+model StrategyShare {
+  id          String   @id @default(cuid())
+  strategyId  String
+  userId      String   // Who shared it
+  shareType   String   // copy, fork, share_link, social_share
+  metadata    Json?    // Share-specific data
+  createdAt   DateTime @default(now())
+
+  strategy Strategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([strategyId])
+  @@index([userId])
+  @@index([shareType])
+}
+
+model StrategyComment {
+  id          String   @id @default(cuid())
+  strategyId  String
+  userId      String
+  content     String
+  likes       Int      @default(0)
+  isEdited    Boolean  @default(false)
+  editedAt    DateTime?
+  parentId    String?  // For nested comments
+  isDeleted   Boolean  @default(false)
+  deletedAt   DateTime?
+  metadata    Json?    // Comment-specific data
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  strategy Strategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([strategyId])
+  @@index([userId])
+  @@index([parentId])
+  @@index([createdAt])
+}
+
+model StrategyRating {
+  id          String   @id @default(cuid())
+  strategyId  String
+  userId      String
+  rating      Int      // 1-5 rating
+  review      String?  // Optional review text
+  isHelpful   Boolean  @default(false)
+  metadata    Json?    // Rating-specific data
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  strategy Strategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([strategyId, userId])
+  @@index([strategyId])
+  @@index([userId])
+  @@index([rating])
+}
+
+model StrategyLike {
+  id         String   @id @default(cuid())
+  strategyId String
+  userId     String
+  createdAt  DateTime @default(now())
+
+  strategy Strategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([strategyId, userId])
+  @@index([strategyId])
+  @@index([userId])
+}
+
+model UserFollows {
+  id          String   @id @default(cuid())
+  followerId  String   // User who is following
+  followingId String   // User being followed
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+// Automated Task Execution Models
+
+model AutomatedTask {
+  id            String   @id @default(cuid())
+  userId        String
+  airdropId     String?
+  strategyId    String?
+  name          String
+  description   String?
+  taskType      String   // token_approval, contract_interaction, token_swap, bridge, claim, etc.
+  priority      String   @default("medium") // low, medium, high, urgent
+  status        String   @default("draft") // draft, scheduled, pending_approval, executing, completed, failed, cancelled
+  config        Json     // Task configuration and parameters
+  approvalRequired Boolean @default(true)
+  approvalSettings Json?  // Approval workflow settings
+  scheduleConfig Json?    // Scheduling configuration
+  gasConfig     Json?    // Gas optimization settings
+  retryConfig   Json?    // Retry configuration
+  securityChecks Json?    // Security check settings
+  executionPlan Json?    // Step-by-step execution plan
+  estimatedGas  Float?   // Estimated gas cost
+  estimatedTime Int?     // Estimated execution time in minutes
+  maxCost       Float?   // Maximum cost limit
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  scheduledAt   DateTime?
+  startedAt     DateTime?
+  completedAt   DateTime?
+  lastExecutedAt DateTime?
+
+  user     User     @relation("UserAutomatedTasks", fields: [userId], references: [id], onDelete: Cascade)
+  airdrop  Airdrop? @relation("AirdropAutomatedTasks", fields: [airdropId], references: [id], onDelete: SetNull)
+  strategy Strategy? @relation("StrategyAutomatedTasks", fields: [strategyId], references: [id], onDelete: SetNull)
+  executions TaskExecution[] @relation("TaskExecutions")
+  approvals TaskApproval[] @relation("TaskApprovals")
+
+  @@index([userId])
+  @@index([status])
+  @@index([taskType])
+  @@index([priority])
+  @@index([scheduledAt])
+}
+
+model TaskExecution {
+  id            String   @id @default(cuid())
+  taskId        String
+  userId        String
+  executionId   String   @unique // Unique execution identifier
+  status        String   @default("pending") // pending, running, completed, failed, cancelled
+  step          Int      @default(0) // Current step in execution plan
+  totalSteps    Int?     // Total steps in execution plan
+  progress      Float    @default(0.0) // 0-100 progress
+  inputParams   Json?    // Input parameters for this execution
+  result        Json?    // Execution result
+  error         String?  // Error message if failed
+  gasUsed       Float?   // Actual gas used
+  gasPrice      Float?   // Gas price used
+  transactionHash String? // Transaction hash
+  blockNumber   BigInt?  // Block number
+  logs          Json?    // Transaction logs
+  metrics       Json?    // Performance metrics
+  startedAt     DateTime @default(now())
+  completedAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  task AutomatedTask @relation("TaskExecutions", fields: [taskId], references: [id], onDelete: Cascade)
+  user User          @relation("UserTaskExecutions", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([userId])
+  @@index([status])
+  @@index([executionId])
+  @@index([startedAt])
+}
+
+model TaskApproval {
+  id          String   @id @default(cuid())
+  taskId      String
+  userId      String
+  executionId String?  // If this is approval for a specific execution
+  approverType String  // user, guardian, multisig, automated
+  approverId  String?  // ID of the approver (user, guardian contract, etc.)
+  status      String   @default("pending") // pending, approved, rejected, expired
+  reason      String?  // Reason for approval/rejection
+  metadata    Json?    // Additional approval metadata
+  expiresAt   DateTime?
+  approvedAt  DateTime?
+  rejectedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  task AutomatedTask @relation("TaskApprovals", fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([userId])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model TaskTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  category    String   // defi, gaming, nft, bridge, etc.
+  taskType    String   // token_approval, contract_interaction, etc.
+  difficulty  String   @default("medium") // easy, medium, hard, expert
+  riskLevel   String   @default("medium") // low, medium, high, extreme
+  template    Json     // Task template with placeholders
+  defaultConfig Json?  // Default configuration
+  securityChecks Json? // Required security checks
+  estimatedGas  Float? // Estimated gas cost
+  estimatedTime Int?   // Estimated execution time
+  prerequisites Json?  // Prerequisites for this task
+  tags        Json?    // Tags for categorization
+  isActive    Boolean  @default(true)
+  isPublic    Boolean  @default(true)
+  usageCount  Int      @default(0)
+  successRate Float    @default(0.0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([taskType])
+  @@index([difficulty])
+  @@index([riskLevel])
+  @@index([isActive])
+  @@index([isPublic])
+}
