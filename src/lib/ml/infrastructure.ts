@@ -1,15 +1,7 @@
 import { db } from '@/lib/db';
 
-// Server-side ZAI import
+// Server-side ZAI import - will be loaded dynamically
 let ZAI: any = null;
-if (typeof window === 'undefined') {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    ZAI = require('z-ai-web-dev-sdk').default || require('z-ai-web-dev-sdk').ZAI;
-  } catch (error) {
-    console.warn('ZAI SDK not available:', error);
-  }
-}
 
 // ML Infrastructure Service
 export class MLInfrastructure {
@@ -30,8 +22,8 @@ export class MLInfrastructure {
       if (!ZAI) {
         // Try dynamic import instead of require
         try {
-          const module = await import('z-ai-web-dev-sdk');
-          ZAI = module.default || module.ZAI;
+          const zaiModule = await import('z-ai-web-dev-sdk');
+          ZAI = zaiModule.default || zaiModule.ZAI;
         } catch (importError) {
           console.warn('⚠️ ZAI SDK not available in this environment');
           return;
